@@ -123,3 +123,9 @@ MoviePulse integrates two main APIs to deliver movie-related data and enhance se
   python manage.py migrate
   python manage.py warmup_cache
   python manage.py runserver -->
+
+#### Showcase
+
+<https://res.cloudinary.com/dwdblvoxm/image/upload/v1763054773/projects/b09f21cb-42c1-49e8-b79f-9399a010633d.png>
+
+<https://res.cloudinary.com/dwdblvoxm/image/upload/v1763055211/projects/1e3e7de6-d08a-4a7c-ac8e-f6d1cec75842.png>
