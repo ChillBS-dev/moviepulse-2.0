@@ -74,22 +74,27 @@ function LoginModal({ isOpen, onClose }) {
 	if (!isOpen) return null;
 
 	return (
-		<div className='fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50'>
-			<div className='bg-white p-8 rounded-lg w-96 max-w-md'>
-				<div
-					className='flex justify-end text-[#0d1f33] cursor-pointer'
-					onClick={toggleIsRegister}>
-					{isRegister ? 'Login' : 'Register'}
+		<div className='fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
+			<div className='bg-white p-8 rounded-2xl w-full max-w-md shadow-2xl transform transition-all'>
+				<div className='flex justify-between items-center mb-6'>
+					<h2 className='text-3xl font-bold text-gray-800'>
+						{isRegister ? 'Create Account' : 'Welcome Back'}
+					</h2>
+					<button
+						onClick={onClose}
+						className='text-gray-400 hover:text-gray-600 transition-colors p-1 hover:bg-gray-100 rounded-lg'>
+						<svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+							<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
+						</svg>
+					</button>
 				</div>
-				<h2 className='text-2xl font-bold mb-6 text-center'>
-					{isRegister ? 'Sign Up' : 'Sign In'}
-				</h2>
-				<form onSubmit={handleSubmit}>
-					<div className='mb-4'>
+
+				<form onSubmit={handleSubmit} className='space-y-4'>
+					<div>
 						<label
 							htmlFor='email'
-							className='block mb-2 text-sm font-medium text-gray-700'>
-							Email
+							className='block mb-2 text-sm font-semibold text-gray-700'>
+							Email Address
 						</label>
 						<input
 							type='email'
@@ -97,50 +102,55 @@ function LoginModal({ isOpen, onClose }) {
 							name='email'
 							value={formData.email}
 							onChange={handleChange}
-							className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600'
+							className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200'
+							placeholder='you@example.com'
 							required
 						/>
 					</div>
 					{isRegister && (
 						<>
-							<div className='mb-4'>
-								<label
-									htmlFor='first_name'
-									className='block mb-2 text-sm font-medium text-gray-700'>
-									First Name
-								</label>
-								<input
-									type='text'
-									id='first_name'
-									name='first_name'
-									value={formData.first_name}
-									onChange={handleChange}
-									className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600'
-									required
-								/>
-							</div>
-							<div className='mb-4'>
-								<label
-									htmlFor='last_name'
-									className='block mb-2 text-sm font-medium text-gray-700'>
-									Last Name
-								</label>
-								<input
-									type='text'
-									id='last_name'
-									name='last_name'
-									value={formData.last_name}
-									onChange={handleChange}
-									className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600'
-									required
-								/>
+							<div className='grid grid-cols-2 gap-4'>
+								<div>
+									<label
+										htmlFor='first_name'
+										className='block mb-2 text-sm font-semibold text-gray-700'>
+										First Name
+									</label>
+									<input
+										type='text'
+										id='first_name'
+										name='first_name'
+										value={formData.first_name}
+										onChange={handleChange}
+										className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200'
+										placeholder='John'
+										required
+									/>
+								</div>
+								<div>
+									<label
+										htmlFor='last_name'
+										className='block mb-2 text-sm font-semibold text-gray-700'>
+										Last Name
+									</label>
+									<input
+										type='text'
+										id='last_name'
+										name='last_name'
+										value={formData.last_name}
+										onChange={handleChange}
+										className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200'
+										placeholder='Doe'
+										required
+									/>
+								</div>
 							</div>
 						</>
 					)}
-					<div className='mb-6'>
+					<div>
 						<label
 							htmlFor='password'
-							className='block mb-2 text-sm font-medium text-gray-700'>
+							className='block mb-2 text-sm font-semibold text-gray-700'>
 							Password
 						</label>
 						<input
@@ -149,15 +159,16 @@ function LoginModal({ isOpen, onClose }) {
 							name='password'
 							value={formData.password}
 							onChange={handleChange}
-							className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600'
+							className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200'
+							placeholder='••••••••'
 							required
 						/>
 					</div>
 					{isRegister && (
-						<div className='mb-6'>
+						<div>
 							<label
 								htmlFor='password2'
-								className='block mb-2 text-sm font-medium text-gray-700'>
+								className='block mb-2 text-sm font-semibold text-gray-700'>
 								Confirm Password
 							</label>
 							<input
@@ -166,22 +177,29 @@ function LoginModal({ isOpen, onClose }) {
 								name='password2'
 								value={formData.password2}
 								onChange={handleChange}
-								className='w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-purple-600'
+								className='w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200'
+								placeholder='••••••••'
 								required
 							/>
 						</div>
 					)}
 					<button
 						type='submit'
-						className='w-full bg-[#0d1f33c4] text-white p-2 rounded font-semibold hover:bg-[#0d1f33] transition duration-300'>
-						{isRegister ? 'Register' : 'Login'}
+						className='w-full bg-[#0d1f33] text-white py-3.5 px-4 rounded-xl font-semibold hover:bg-[#162d4a] transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'>
+						{isRegister ? 'Create Account' : 'Sign In'}
 					</button>
 				</form>
-				<button
-					onClick={onClose}
-					className='mt-4 text-sm text-gray-600 hover:text-gray-800 w-full text-center'>
-					Close
-				</button>
+
+				<div className='mt-6 text-center'>
+					<p className='text-gray-600 text-sm'>
+						{isRegister ? 'Already have an account?' : "Don't have an account?"}{' '}
+						<button
+							onClick={toggleIsRegister}
+							className='text-[#0d1f33] font-semibold hover:underline transition-all'>
+							{isRegister ? 'Sign In' : 'Sign Up'}
+						</button>
+					</p>
+				</div>
 			</div>
 		</div>
 	);

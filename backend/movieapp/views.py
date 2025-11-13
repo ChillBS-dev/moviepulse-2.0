@@ -4,11 +4,18 @@ from rest_framework.response import Response
 from .serializers import UserSerializer
 from rest_framework.generics import GenericAPIView
 from rest_framework import status
-from .utils import send_otp_email, fetch_movie_data, MoviePagination, fetch_top_movies
+from .utils import (
+    send_otp_email,
+    fetch_movie_data,
+    MoviePagination,
+    fetch_top_movies,
+    fetch_movies_by_category,
+    fetch_movie_details,
+)
 from .models import User, OneTimePassword
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from django.core.cache import cache
 
@@ -100,15 +107,21 @@ class LoginView(APIView):
 
 
 class SearchMoviesView(APIView):
+    """Search movies - accessible to both authenticated and guest users with caching"""
+
+    permission_classes = [AllowAny]
+
     def get(self, request):
         query = request.GET.get("query")
+        page = request.GET.get("page", 1)
+
         if not query:
             return Response(
                 {"error": "Query parameter is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        movie_data = fetch_movie_data(query)
+        movie_data = fetch_movie_data(query, page)
 
         if "error" in movie_data:
             return Response(
@@ -120,27 +133,68 @@ class SearchMoviesView(APIView):
 
 
 class TopMoviesListView(APIView):
+    """Fetch top movies - accessible to both authenticated and guest users with caching"""
+
+    permission_classes = [AllowAny]
+
     def get(self, request):
         page = request.query_params.get("page", 1)
 
-        cache_key = f"top_movies_{page}"
+        data = fetch_top_movies(page)
 
-        data = cache.get(cache_key)
-
-        if not data:
-            data = fetch_top_movies(page)
-            if "results" not in data:
-                return Response(
-                    {
-                        "error": "Unexpected response from TMDB API. 'results' not found."
-                    },
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-
-            cache.set(cache_key, data, timeout=7200)
-            print(cache_key)
+        if "results" not in data:
+            return Response(
+                {"error": "Unexpected response from TMDB API. 'results' not found."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         paginator = MoviePagination()
         result_page = paginator.paginate_queryset(data["results"], request)
 
         return paginator.get_paginated_response(result_page)
+
+
+class MoviesByCategoryView(APIView):
+    """Fetch movies by category - accessible to both authenticated and guest users with caching"""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        category = request.query_params.get("category", "movies")
+        page = request.query_params.get("page", 1)
+
+        data = fetch_movies_by_category(category, page)
+
+        if "error" in data:
+            return Response(
+                {"error": data["error"]},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if "results" not in data:
+            return Response(
+                {"error": "Unexpected response from TMDB API."},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        paginator = MoviePagination()
+        result_page = paginator.paginate_queryset(data["results"], request)
+
+        return paginator.get_paginated_response(result_page)
+
+
+class MovieDetailView(APIView):
+    """Fetch movie details - accessible to both authenticated and guest users with caching"""
+
+    permission_classes = [AllowAny]
+
+    def get(self, request, movie_id):
+        data = fetch_movie_details(movie_id)
+
+        if "error" in data:
+            return Response(
+                {"error": data["error"]},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data, status=status.HTTP_200_OK)

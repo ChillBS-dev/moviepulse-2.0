@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_ENDPOINTS, apiClient } from '../services/api';
 
 const useMovie = (searchQuery, currentPage) => {
 	const [movies, setMovies] = useState([]);
@@ -9,14 +10,48 @@ const useMovie = (searchQuery, currentPage) => {
 		const fetchMovies = async () => {
 			setIsLoading(true);
 			try {
-				const response = await fetch(
-					`https://moviepulse.onrender.com/api/movies/?query=${searchQuery}&page=${currentPage}`
-				);
-				const data = await response.json();
-				setMovies(data.results);
-				setTotalPages(Math.ceil(data.count / 10)); // Adjust based on the items per page
+				let data;
+				
+				// Check if it's a search query or category
+				if (searchQuery && searchQuery.trim() !== '' && 
+				    !['Movies', 'Series', 'Documentaries', 'Trending'].includes(searchQuery)) {
+					// Search for specific movies
+					data = await apiClient.get(API_ENDPOINTS.searchMovies, {
+						query: searchQuery,
+						page: currentPage,
+					});
+				} else {
+					// Fetch by category or trending (top movies)
+					const category = searchQuery === 'Trending' || searchQuery === 'Movies' 
+						? 'movies' 
+						: searchQuery.toLowerCase();
+					
+					if (category === 'movies' && searchQuery === 'Trending') {
+						// Fetch top/trending movies
+						data = await apiClient.get(API_ENDPOINTS.topMovies, {
+							page: currentPage,
+						});
+					} else {
+						// Fetch by category
+						data = await apiClient.get(API_ENDPOINTS.moviesByCategory, {
+							category: category,
+							page: currentPage,
+						});
+					}
+				}
+
+				// Handle paginated response
+				if (data.results) {
+					setMovies(data.results);
+					setTotalPages(data.total_pages || Math.ceil(data.count / 10));
+				} else {
+					setMovies([]);
+					setTotalPages(0);
+				}
 			} catch (error) {
 				console.error('Failed to fetch movies:', error);
+				setMovies([]);
+				setTotalPages(0);
 			} finally {
 				setIsLoading(false);
 			}

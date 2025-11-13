@@ -80,7 +80,10 @@ TEMPLATES = [
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "unique-snowflake",
+        "LOCATION": "moviepulse-cache",
+        "OPTIONS": {
+            "MAX_ENTRIES": 1000,  # Maximum number of cache entries
+        },
     }
 }
 

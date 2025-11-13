@@ -14,6 +14,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import MovieDetail from './Components/MovieDetail';
 import DropdownMenu from './Components/DropdownMenu';
 import Favourite from './Components/Favourite';
+
+// ProtectedRoute: Only for routes that MUST have authentication
 const ProtectedRoute = ({ children }) => {
 	const { user } = useApp();
 	const accessToken = localStorage.getItem('accessToken');
@@ -40,14 +42,8 @@ function App() {
 				<ToastContainer position='top-right' autoClose={3000} />
 				<Routes>
 					<Route path='/' element={<WelcomeScreen />} />
-					<Route
-						path='/home'
-						element={
-							<ProtectedRoute>
-								<Home />
-							</ProtectedRoute>
-						}
-					/>
+					{/* Home is now accessible to guests */}
+					<Route path='/home' element={<Home />} />
 					<Route path='/movie/:id' element={<MovieDetail />} />
 					<Route path='/logout' element={<Navigate to='/' />} />
 					<Route
@@ -58,6 +54,7 @@ function App() {
 							</ProtectedRoute>
 						}
 					/>
+					{/* Favorites accessible to guests (uses localStorage) */}
 					<Route path='/favorites' element={<Favourite />} />
 				</Routes>
 			</Router>

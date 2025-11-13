@@ -8,12 +8,12 @@ function Home() {
 	const { user } = useApp();
 
 	return (
-		<div className='md:flex flex-row '>
+		<div className='md:flex flex-row min-h-screen bg-gray-900'>
 			<div className={`${user ? 'hidden md:flex' : 'hidden'}`}>
 				<SidebarPage />
 			</div>
 			<div
-				className={`${user ? 'md:ml-44 basis-11/12' : 'w-full'} bg-[#0d1f33]`}>
+				className={`${user ? 'md:ml-56 basis-11/12' : 'w-full'} bg-gray-900`}>
 				<Header />
 				<Catalogue />
 			</div>

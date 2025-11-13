@@ -1,29 +1,35 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import { API_ENDPOINTS } from '../services/api';
 
 const AppContext = createContext();
-const BASE_URL = 'http://127.0.0.1:8000/api';
 
 export const AppProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
 	const [isDarkMode, setIsDarkMode] = useState(false);
 	const [searchQuery, setSearchQuery] = useState('Trending');
+	const [isGuest, setIsGuest] = useState(true); // Track guest status
+	
 	useEffect(() => {
 		const token = localStorage.getItem('accessToken');
 		if (token) {
 			setUser({ token });
+			setIsGuest(false);
+		} else {
+			setIsGuest(true);
 		}
 	}, []);
 
 	const login = async (userData) => {
 		try {
-			const response = await axios.post(`${BASE_URL}/login/`, userData);
+			const response = await axios.post(API_ENDPOINTS.login, userData);
 			const { access, refresh } = response.data;
 			localStorage.setItem('accessToken', access);
 			localStorage.setItem('refreshToken', refresh);
 
 			setUser(response.data);
+			setIsGuest(false);
 			toast.success('Login successful!', { autoClose: 3000 });
 
 			return true;
@@ -38,8 +44,8 @@ export const AppProvider = ({ children }) => {
 
 	const register = async (userData) => {
 		try {
-			await axios.post(`${BASE_URL}/register/`, userData);
-			toast.success('Registration successful!', { autoClose: 3000 });
+			await axios.post(API_ENDPOINTS.register, userData);
+			toast.success('Registration successful! Please login.', { autoClose: 3000 });
 			return true;
 		} catch (error) {
 			toast.error('Registration failed! Please try again.', {
@@ -50,14 +56,19 @@ export const AppProvider = ({ children }) => {
 	};
 
 	const logout = () => {
-		axios.post(`${BASE_URL}/logout/`, null, {
-			headers: {
-				Authorization: `Bearer ${user.token}`,
-			},
-		});
+		const token = localStorage.getItem('accessToken');
+		if (token) {
+			axios.post(API_ENDPOINTS.logout, null, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+				},
+			}).catch(err => console.error('Logout error:', err));
+		}
+		
 		localStorage.removeItem('accessToken');
 		localStorage.removeItem('refreshToken');
 		setUser(null);
+		setIsGuest(true);
 		toast.success('Logout successful!', { autoClose: 3000 });
 	};
 
@@ -69,6 +80,7 @@ export const AppProvider = ({ children }) => {
 		searchQuery,
 		setSearchQuery,
 		user,
+		isGuest,
 		login,
 		logout,
 		register,
