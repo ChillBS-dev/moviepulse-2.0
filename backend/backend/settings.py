@@ -45,6 +45,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -183,3 +184,10 @@ EMAIL_SSL_CERTFILE = env("EMAIL_SSL_CERTFILE", default=None)
 EMAIL_TIMEOUT = env.int("EMAIL_TIMEOUT", default=10)
 
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL")
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+STATIC_ROOT = BASE_DIR / "staticfiles"
