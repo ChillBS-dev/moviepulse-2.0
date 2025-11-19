@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "==18.x"
+    "node": "==20.x"
   },
   "engineStrict": true,
-  "proxy": "https://moviepulse.onrender.com",
+  "proxy": "https://moviepulse-wathika-eng9819-2r0nahjk.leapcell.dev",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -27,6 +27,7 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "react-toastify": "^10.0.5",
+    "shebang-regex": "^4.0.0",
     "web-vitals": "^2.1.4",
     "yup": "^1.4.0"
   },
