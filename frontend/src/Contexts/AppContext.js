@@ -7,9 +7,12 @@ const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
 	const [user, setUser] = useState(null);
+	// Theme: persisted as 'dark' or 'light' in localStorage
 	const [isDarkMode, setIsDarkMode] = useState(false);
+	const [theme, setTheme] = useState('dark');
 	const [searchQuery, setSearchQuery] = useState('Trending');
 	const [isGuest, setIsGuest] = useState(true); // Track guest status
+	const [localMovies, setLocalMovies] = useState([]); // cache of last-fetched movies for client-side search
 	
 	useEffect(() => {
 		const token = localStorage.getItem('accessToken');
@@ -18,6 +21,16 @@ export const AppProvider = ({ children }) => {
 			setIsGuest(false);
 		} else {
 			setIsGuest(true);
+		}
+
+		// Initialize theme from localStorage or default to 'dark'
+		const savedTheme = localStorage.getItem('theme') || 'dark';
+		setTheme(savedTheme);
+		setIsDarkMode(savedTheme === 'dark');
+		if (savedTheme === 'dark') {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
 		}
 	}, []);
 
@@ -73,7 +86,16 @@ export const AppProvider = ({ children }) => {
 	};
 
 	const toggleTheme = () => {
-		setIsDarkMode(!isDarkMode);
+		const next = !isDarkMode;
+		setIsDarkMode(next);
+		const nextTheme = next ? 'dark' : 'light';
+		setTheme(nextTheme);
+		localStorage.setItem('theme', nextTheme);
+		if (next) {
+			document.documentElement.classList.add('dark');
+		} else {
+			document.documentElement.classList.remove('dark');
+		}
 	};
 
 	const contextValue = {
@@ -81,10 +103,13 @@ export const AppProvider = ({ children }) => {
 		setSearchQuery,
 		user,
 		isGuest,
+		localMovies,
+		setLocalMovies,
 		login,
 		logout,
 		register,
 		isDarkMode,
+		theme,
 		toggleTheme,
 	};
 

@@ -11,19 +11,26 @@ function MovieDetail() {
 
 	useEffect(() => {
 		const fetchMovie = async () => {
-			const movieData = movies.find((movie) => movie.id === parseInt(id));
+			// Defensive guards: movies or trailer data may be undefined initially
+			const movieArray = Array.isArray(movies) ? movies : [];
+			const movieData = movieArray.find((m) => m.id === parseInt(id, 10));
 			if (movieData) {
 				setMovie(movieData);
 
-				// Fetch trailer
-				const trailerResponse = await fetch(
-					`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${YOUR_API_KEY}&language=en-US`
-				);
-				const trailerData = await trailerResponse.json();
-				const trailer = trailerData.results.find(
-					(video) => video.type === 'Trailer'
-				);
-				setTrailer(trailer);
+				// Fetch trailer safely
+				try {
+					const trailerResponse = await fetch(
+						`https://api.themoviedb.org/3/movie/${id}/videos?api_key=${YOUR_API_KEY}&language=en-US`
+					);
+					const trailerData = await trailerResponse.json();
+					const trailerResult = Array.isArray(trailerData?.results)
+						? trailerData.results.find((video) => video.type === 'Trailer')
+						: null;
+					setTrailer(trailerResult);
+				} catch (err) {
+					console.warn('Failed to fetch trailer for movie', id, err);
+					setTrailer(null);
+				}
 			}
 		};
 		fetchMovie();

@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { useApp } from '../../Contexts/AppContext';
+import { useNavigate } from 'react-router-dom';
 
 function Search() {
-	const { setSearchQuery } = useApp();
+	const { setSearchQuery, localMovies } = useApp();
 	const [formData, setFormData] = useState({
 		searchQuery: '',
 	});
@@ -15,6 +16,18 @@ function Search() {
 
 	const handleSearch = () => {
 		setSearchQuery(formData.searchQuery);
+	};
+
+	const suggestions = useMemo(() => {
+		if (!formData.searchQuery || !Array.isArray(localMovies)) return [];
+		const q = formData.searchQuery.toLowerCase();
+		return localMovies.filter((m) => (m.title || m.name || '').toLowerCase().includes(q)).slice(0, 8);
+	}, [formData.searchQuery, localMovies]);
+
+	const navigate = useNavigate();
+	const goToMovie = (id) => {
+		navigate(`/movie/${id}`);
+		setFormData({ searchQuery: '' });
 	};
 
 	return (
@@ -36,7 +49,7 @@ function Search() {
 						placeholder='Search movies, series, documentaries...'
 						className='text-gray-200 text-base w-full border-2 border-gray-700 outline-none bg-[#0d1f33] rounded-xl pl-12 pr-4 py-3 md:py-3.5 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 placeholder:text-gray-500'
 					/>
-					{formData.searchQuery && (
+                    {formData.searchQuery && (
 						<button
 							type='button'
 							onClick={() => setFormData({ searchQuery: '' })}
@@ -46,6 +59,18 @@ function Search() {
 							</svg>
 						</button>
 					)}
+
+				{/* Client-side suggestions from localMovies */}
+				{formData.searchQuery && suggestions.length > 0 && (
+					<div className='absolute left-0 right-0 mt-14 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md z-50 overflow-hidden'>
+						{suggestions.map((s) => (
+							<button key={s.id} onMouseDown={() => goToMovie(s.id)} className='w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700'>
+								<div className='font-medium text-gray-900 dark:text-gray-100'>{s.title || s.name}</div>
+								<div className='text-sm text-gray-500 dark:text-gray-400'>{s.release_date || s.first_air_date || ''}</div>
+							</button>
+						))}
+					</div>
+				)}
 				</div>
 			</form>
 		</div>

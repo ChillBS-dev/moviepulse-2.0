@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { API_ENDPOINTS, apiClient } from '../services/api';
+import { useApp } from '../Contexts/AppContext';
 
 const useMovie = (searchQuery, currentPage) => {
 	const [movies, setMovies] = useState([]);
+	const { setLocalMovies } = useApp();
 	const [isLoading, setIsLoading] = useState(true);
 	const [totalPages, setTotalPages] = useState(0);
 
@@ -43,9 +45,18 @@ const useMovie = (searchQuery, currentPage) => {
 				// Handle paginated response
 				if (data.results) {
 					setMovies(data.results);
+					// also populate AppContext cache for client-side search
+					try {
+						setLocalMovies(Array.isArray(data.results) ? data.results : []);
+					} catch (err) {
+						// If AppContext isn't available for some reason, ignore
+						// (useMovie is expected to be used within AppProvider)
+						// console.warn('Could not set localMovies', err);
+					}
 					setTotalPages(data.total_pages || Math.ceil(data.count / 10));
 				} else {
 					setMovies([]);
+					setLocalMovies && setLocalMovies([]);
 					setTotalPages(0);
 				}
 			} catch (error) {
@@ -58,7 +69,7 @@ const useMovie = (searchQuery, currentPage) => {
 		};
 
 		fetchMovies();
-	}, [searchQuery, currentPage]);
+	}, [searchQuery, currentPage, setLocalMovies]);
 
 	return { movies, isLoading, totalPages };
 };
