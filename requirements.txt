@@ -1,3 +1,4 @@
+whitenoise==6.6.0
 asgiref==3.8.1
 certifi==2024.8.30
 charset-normalizer==3.3.2
