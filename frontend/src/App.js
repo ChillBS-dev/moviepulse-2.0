@@ -1,33 +1,30 @@
-import Trending from './pages/Trending';  // en haut
 import {
 	BrowserRouter as Router,
 	Routes,
 	Route,
 	Navigate,
-	useNavigate,
 } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import WelcomeScreen from './pages/Welcome';
 import Home from './pages/Home';
+import Trending from './pages/Trending';
 import { AppProvider, useApp } from './Contexts/AppContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MovieDetail from './Components/MovieDetail';
 import DropdownMenu from './Components/DropdownMenu';
 import Favourite from './Components/Favourite';
+import Layout from './Components/Layout';
 
 // ProtectedRoute: Only for routes that MUST have authentication
 const ProtectedRoute = ({ children }) => {
-	const { user } = useApp();
 	const accessToken = localStorage.getItem('accessToken');
-
 	return accessToken ? children : <Navigate to='/' />;
 };
 
 function App() {
 	const accessToken = localStorage.getItem('accessToken');
 	let username = '';
-
 	if (accessToken) {
 		try {
 			const decodedToken = jwtDecode(accessToken);
@@ -42,22 +39,53 @@ function App() {
 			<Router>
 				<ToastContainer position='top-right' autoClose={3000} />
 				<Routes>
+					{/* Welcome page - no sidebar */}
 					<Route path='/' element={<WelcomeScreen />} />
-					{/* Home is now accessible to guests */}
-                    <Route path='/trending' element={<Trending />} />
-					<Route path='/home' element={<Home />} />
-					<Route path='/movie/:id' element={<MovieDetail />} />
+
+					{/* All other pages - with sidebar */}
+					<Route
+						path='/home'
+						element={
+							<Layout>
+								<Home />
+							</Layout>
+						}
+					/>
+					<Route
+						path='/trending'
+						element={
+							<Layout>
+								<Trending />
+							</Layout>
+						}
+					/>
+					<Route
+						path='/movie/:id'
+						element={
+							<Layout>
+								<MovieDetail />
+							</Layout>
+						}
+					/>
 					<Route path='/logout' element={<Navigate to='/' />} />
 					<Route
 						path='/account'
 						element={
 							<ProtectedRoute>
-								<DropdownMenu username={username} />
+								<Layout>
+									<DropdownMenu username={username} />
+								</Layout>
 							</ProtectedRoute>
 						}
 					/>
-					{/* Favorites accessible to guests (uses localStorage) */}
-					<Route path='/favorites' element={<Favourite />} />
+					<Route
+						path='/favorites'
+						element={
+							<Layout>
+								<Favourite />
+							</Layout>
+						}
+					/>
 				</Routes>
 			</Router>
 		</AppProvider>
