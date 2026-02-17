@@ -163,7 +163,7 @@ class MovieDetailView(APIView):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_trending(request):
-    """Get top 10 trending movies, TV shows and anime for the week"""
+    """Get top 10 trending movies, TV shows (no anime) and anime for the week"""
     access_token = settings.TMDB_ACCESS_TOKEN
     headers = {
         'Authorization': f'Bearer {access_token}',
@@ -178,15 +178,21 @@ def get_trending(request):
     )
     movies_data = movies_res.json().get('results', [])[:10]
 
-    # Trending TV shows this week
+    # Trending TV shows - fetch more to filter out anime
     tv_res = requests.get(
         'https://api.themoviedb.org/3/trending/tv/week',
         headers=headers,
         params={'language': 'fr-FR'}
     )
-    tv_data = tv_res.json().get('results', [])[:10]
+    all_tv = tv_res.json().get('results', [])
 
-    # Anime : Japanese animation
+    # Filter out anime (Japanese animation = genre 16 + original_language ja)
+    series_data = [
+        s for s in all_tv
+        if not (s.get('original_language') == 'ja' and 16 in s.get('genre_ids', []))
+    ][:10]
+
+    # Anime : Japanese animation only
     anime_res = requests.get(
         'https://api.themoviedb.org/3/discover/tv',
         headers=headers,
@@ -232,6 +238,6 @@ def get_trending(request):
 
     return Response({
         'movies': [format_movie(i, m) for i, m in enumerate(movies_data)],
-        'series': [format_tv(i, s) for i, s in enumerate(tv_data)],
+        'series': [format_tv(i, s) for i, s in enumerate(series_data)],
         'anime': [format_tv(i, a) for i, a in enumerate(anime_data)],
     })
