@@ -1,3 +1,4 @@
+import Trending from './pages/Trending';  // en haut
 import {
 	BrowserRouter as Router,
 	Routes,
@@ -43,6 +44,7 @@ function App() {
 				<Routes>
 					<Route path='/' element={<WelcomeScreen />} />
 					{/* Home is now accessible to guests */}
+                    <Route path='/trending' element={<Trending />} />
 					<Route path='/home' element={<Home />} />
 					<Route path='/movie/:id' element={<MovieDetail />} />
 					<Route path='/logout' element={<Navigate to='/' />} />
