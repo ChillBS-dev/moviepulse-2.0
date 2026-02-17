@@ -1,110 +1,145 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api';
 
-// Cache key with week number to auto-refresh weekly
+const GENRE_MAP = {
+	28: 'Action', 12: 'Aventure', 16: 'Animation', 35: 'Comédie',
+	80: 'Crime', 99: 'Documentaire', 18: 'Drame', 10751: 'Famille',
+	14: 'Fantaisie', 36: 'Histoire', 27: 'Horreur', 10402: 'Musique',
+	9648: 'Mystère', 10749: 'Romance', 878: 'Sci-Fi', 10770: 'TV Movie',
+	53: 'Thriller', 10752: 'Guerre', 37: 'Western',
+	10759: 'Action & Aventure', 10762: 'Enfants', 10763: 'Actualités',
+	10764: 'Réalité', 10765: 'Sci-Fi & Fantaisie', 10766: 'Soap',
+	10767: 'Talk', 10768: 'Guerre & Politique',
+};
+
 const getWeekKey = () => {
 	const now = new Date();
-	const startOfYear = new Date(now.getFullYear(), 0, 1);
-	const week = Math.ceil(((now - startOfYear) / 86400000 + startOfYear.getDay() + 1) / 7);
-	return `trending_cache_${now.getFullYear()}_w${week}`;
+	const start = new Date(now.getFullYear(), 0, 1);
+	const week = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+	return `trending_v2_${now.getFullYear()}_w${week}`;
 };
 
-const RankBadge = ({ rank }) => {
-	if (rank === 1) return <div className='text-5xl font-black text-yellow-400 drop-shadow-lg w-12 text-center'>1</div>;
-	if (rank === 2) return <div className='text-5xl font-black text-gray-300 drop-shadow-lg w-12 text-center'>2</div>;
-	if (rank === 3) return <div className='text-5xl font-black text-amber-600 drop-shadow-lg w-12 text-center'>3</div>;
-	return <div className='text-3xl font-black text-gray-600 w-12 text-center'>{rank}</div>;
-};
-
-const StarBar = ({ rating }) => {
-	const pct = (rating / 10) * 100;
-	return (
-		<div className='flex items-center gap-2'>
-			<div className='flex-1 bg-gray-700 rounded-full h-1.5 max-w-24'>
-				<div
-					className='bg-gradient-to-r from-yellow-500 to-yellow-300 h-1.5 rounded-full transition-all duration-1000'
-					style={{ width: `${pct}%` }}
-				/>
-			</div>
-			<span className='text-yellow-400 text-xs font-bold'>{rating}/10</span>
-		</div>
-	);
-};
-
-const PodiumCard = ({ item, rank, onClick, animDelay }) => {
-	const [visible, setVisible] = useState(false);
-	useEffect(() => {
-		setTimeout(() => setVisible(true), animDelay);
-	}, [animDelay]);
-
-	const posterUrl = item?.poster_path
-		? `https://image.tmdb.org/t/p/w300${item.poster_path}`
-		: 'https://via.placeholder.com/300x450/1f2937/4b5563?text=N%2FA';
-
-	const configs = {
-		1: { size: 'w-36 h-52', border: 'border-yellow-400', glow: 'shadow-yellow-500/30', crown: '👑', label: 'text-white font-bold' },
-		2: { size: 'w-28 h-40', border: 'border-gray-400', glow: 'shadow-gray-400/20', crown: '🥈', label: 'text-gray-300' },
-		3: { size: 'w-28 h-40', border: 'border-amber-600', glow: 'shadow-amber-600/20', crown: '🥉', label: 'text-gray-300' },
+const RankNumber = ({ rank }) => {
+	const colors = {
+		1: 'text-blue-400',
+		2: 'text-blue-300',
+		3: 'text-blue-200',
 	};
-	const cfg = configs[rank];
-
 	return (
-		<div
-			onClick={() => onClick(item)}
-			className={`flex flex-col items-center cursor-pointer group transition-all duration-500 ${
-				visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-			} ${rank === 1 ? '' : 'mt-8'}`}>
-			<div className='text-2xl mb-2'>{cfg.crown}</div>
-			<div className={`relative ${cfg.size} border-2 ${cfg.border} rounded-xl overflow-hidden shadow-2xl ${cfg.glow} group-hover:scale-105 transition-transform duration-200`}>
-				<img
-					src={posterUrl}
-					alt={item?.title}
-					className='w-full h-full object-cover'
-					onError={(e) => { e.target.src = 'https://via.placeholder.com/300x450/1f2937/4b5563?text=N%2FA'; }}
-				/>
-				<div className='absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent' />
-				<div className='absolute bottom-2 left-2 right-2'>
-					<StarBar rating={item?.vote_average || 0} />
-				</div>
-			</div>
-			<p className={`text-xs mt-2 text-center max-w-28 truncate ${cfg.label}`}>{item?.title}</p>
-		</div>
+		<span className={`text-7xl font-black leading-none select-none ${colors[rank] || 'text-gray-600'} drop-shadow-2xl`}>
+			{rank}
+		</span>
 	);
 };
 
-const ListCard = ({ item, onClick, animDelay }) => {
-	const [visible, setVisible] = useState(false);
-	useEffect(() => {
-		setTimeout(() => setVisible(true), animDelay);
-	}, [animDelay]);
+const GenreTag = ({ name }) => (
+	<span className='text-xs px-2.5 py-1 rounded-full bg-white/10 text-gray-300 border border-white/10 backdrop-blur-sm'>
+		{name}
+	</span>
+);
 
+const TrendingCard = ({ item, onClick }) => {
+	const [hovered, setHovered] = useState(false);
+	const backdropUrl = item.backdrop_path
+		? `https://image.tmdb.org/t/p/w1280${item.backdrop_path}`
+		: null;
 	const posterUrl = item.poster_path
 		? `https://image.tmdb.org/t/p/w92${item.poster_path}`
-		: 'https://via.placeholder.com/92x138/1f2937/4b5563?text=N%2FA';
+		: null;
+
+	const genres = (item.genre_ids || [])
+		.slice(0, 3)
+		.map(id => GENRE_MAP[id])
+		.filter(Boolean);
+
+	const year = item.release_date ? new Date(item.release_date).getFullYear() : '';
 
 	return (
 		<div
 			onClick={() => onClick(item)}
-			className={`flex items-center gap-4 p-3 rounded-xl hover:bg-gray-700/50 cursor-pointer transition-all duration-300 group border border-transparent hover:border-gray-600 ${
-				visible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
-			}`}>
-			<RankBadge rank={item.rank} />
-			<img
-				src={posterUrl}
-				alt={item.title}
-				className='w-10 h-14 object-cover rounded-lg flex-shrink-0 group-hover:scale-105 transition-transform'
-				onError={(e) => { e.target.src = 'https://via.placeholder.com/92x138/1f2937/4b5563?text=N%2FA'; }}
-			/>
-			<div className='flex-1 min-w-0'>
-				<p className='text-white font-semibold text-sm truncate group-hover:text-blue-400 transition-colors'>
-					{item.title}
-				</p>
-				<p className='text-gray-500 text-xs'>{item.release_date ? new Date(item.release_date).getFullYear() : ''}</p>
-				<StarBar rating={item.vote_average} />
+			onMouseEnter={() => setHovered(true)}
+			onMouseLeave={() => setHovered(false)}
+			className='relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 border border-white/5 hover:border-blue-500/40 hover:shadow-2xl hover:shadow-blue-900/30'
+			style={{ minHeight: '120px' }}>
+
+			{/* Backdrop background */}
+			{backdropUrl && (
+				<div
+					className='absolute inset-0 bg-cover bg-center transition-transform duration-500'
+					style={{
+						backgroundImage: `url(${backdropUrl})`,
+						transform: hovered ? 'scale(1.03)' : 'scale(1)',
+					}}
+				/>
+			)}
+			{/* Dark overlay */}
+			<div className={`absolute inset-0 transition-opacity duration-300 ${
+				backdropUrl
+					? 'bg-gradient-to-r from-gray-900/98 via-gray-900/85 to-gray-900/60'
+					: 'bg-gray-800'
+			}`} />
+
+			{/* Blue left accent bar */}
+			<div className={`absolute left-0 top-0 bottom-0 w-1 transition-opacity duration-300 ${
+				hovered ? 'opacity-100' : 'opacity-0'
+			} bg-gradient-to-b from-blue-400 to-blue-600`} />
+
+			{/* Content */}
+			<div className='relative flex items-center gap-6 px-6 py-5'>
+				{/* Rank */}
+				<div className='flex-shrink-0 w-16 text-center'>
+					<RankNumber rank={item.rank} />
+				</div>
+
+				{/* Poster (small) */}
+				{posterUrl && (
+					<div className='flex-shrink-0 hidden sm:block'>
+						<img
+							src={posterUrl}
+							alt={item.title}
+							className='w-12 h-16 object-cover rounded-lg shadow-xl'
+						/>
+					</div>
+				)}
+
+				{/* Info */}
+				<div className='flex-1 min-w-0'>
+					<h3 className={`font-bold text-lg truncate transition-colors duration-200 ${
+						hovered ? 'text-blue-300' : 'text-white'
+					}`}>
+						{item.title}
+					</h3>
+					<div className='flex items-center gap-3 mt-1 mb-2'>
+						{year && <span className='text-gray-500 text-xs'>{year}</span>}
+						<div className='flex items-center gap-1'>
+							<span className='text-yellow-400 text-xs'>★</span>
+							<span className='text-yellow-400 text-xs font-bold'>{item.vote_average}/10</span>
+						</div>
+					</div>
+					<div className='flex flex-wrap gap-1.5'>
+						{genres.map(g => <GenreTag key={g} name={g} />)}
+					</div>
+				</div>
+
+				{/* Right stats */}
+				<div className='flex-shrink-0 text-right hidden md:block'>
+					<div className='text-2xl font-black text-white'>
+						{item.vote_count ? (item.vote_count >= 1000
+							? `${(item.vote_count / 1000).toFixed(1)}k`
+							: item.vote_count) : '—'}
+					</div>
+					<div className='text-blue-400 text-xs mt-0.5'>votes</div>
+					<div className='text-lg font-bold text-white mt-2'>{item.vote_average}</div>
+					<div className='text-blue-400 text-xs'>note moy.</div>
+				</div>
+
+				{/* Arrow */}
+				<div className={`flex-shrink-0 text-2xl transition-all duration-200 ${
+					hovered ? 'text-blue-400 translate-x-1' : 'text-gray-700'
+				}`}>›</div>
 			</div>
-			<span className='text-gray-600 group-hover:text-blue-400 text-lg transition-colors'>›</span>
 		</div>
 	);
 };
@@ -115,18 +150,11 @@ const Trending = () => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState(null);
 	const [activeTab, setActiveTab] = useState('movies');
-	const [lastUpdated, setLastUpdated] = useState('');
 	const navigate = useNavigate();
 
-	useEffect(() => {
-		loadTrending();
-		setLastUpdated(new Date().toLocaleDateString('fr-FR', {
-			weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-		}));
-	}, []);
+	useEffect(() => { loadTrending(); }, []);
 
 	const loadTrending = async () => {
-		// Check weekly cache
 		const weekKey = getWeekKey();
 		const cached = localStorage.getItem(weekKey);
 		if (cached) {
@@ -138,11 +166,8 @@ const Trending = () => {
 				return;
 			} catch (e) {}
 		}
-		// Clear old cache keys
 		Object.keys(localStorage).forEach(k => {
-			if (k.startsWith('trending_cache_') && k !== weekKey) {
-				localStorage.removeItem(k);
-			}
+			if (k.startsWith('trending_v2_') && k !== weekKey) localStorage.removeItem(k);
 		});
 		await fetchFromAPI(weekKey);
 	};
@@ -151,12 +176,11 @@ const Trending = () => {
 		try {
 			setIsLoading(true);
 			setError(null);
-			const response = await fetch(`${API_BASE_URL}/trending/`);
-			if (!response.ok) throw new Error('Erreur réseau');
-			const data = await response.json();
+			const res = await fetch(`${API_BASE_URL}/trending/`);
+			if (!res.ok) throw new Error('Erreur réseau');
+			const data = await res.json();
 			setMovies(data.movies || []);
 			setSeries(data.series || []);
-			// Cache for the week
 			localStorage.setItem(weekKey || getWeekKey(), JSON.stringify(data));
 		} catch (err) {
 			setError('Impossible de charger le trending.');
@@ -165,31 +189,28 @@ const Trending = () => {
 		}
 	};
 
-	const handleItemClick = (item) => {
-		// Pass data via state so MovieDetail can use it without loading
+	const handleClick = (item) => {
 		navigate(`/movie/${item.id}`, {
-			state: {
-				mediaType: item.media_type,
-				preloadedData: item,
-			}
+			state: { mediaType: item.media_type, preloadedData: item }
 		});
 	};
 
 	const currentData = activeTab === 'movies' ? movies : series;
-	const podium = currentData.slice(0, 3);
-	const rest = currentData.slice(3);
+	const avgRating = currentData.length
+		? (currentData.reduce((s, i) => s + i.vote_average, 0) / currentData.length).toFixed(1)
+		: '—';
+	const totalVotes = currentData.reduce((s, i) => s + (i.vote_count || 0), 0);
 
 	if (isLoading) {
 		return (
-			<div className='min-h-screen bg-gray-900 flex items-center justify-center'>
+			<div className='min-h-screen bg-black flex items-center justify-center'>
 				<div className='text-center'>
 					<div className='relative w-20 h-20 mx-auto mb-6'>
-						<div className='absolute inset-0 border-4 border-blue-500/30 rounded-full animate-ping' />
-						<div className='absolute inset-2 border-4 border-blue-400 border-t-transparent rounded-full animate-spin' />
-						<div className='absolute inset-0 flex items-center justify-center text-2xl'>🏆</div>
+						<div className='absolute inset-0 border-4 border-blue-500/20 rounded-full animate-ping' />
+						<div className='absolute inset-2 border-4 border-blue-500 border-t-transparent rounded-full animate-spin' />
 					</div>
-					<p className='text-white text-xl font-semibold'>Chargement du Top 10...</p>
-					<p className='text-gray-500 text-sm mt-2'>Récupération des données TMDB</p>
+					<p className='text-white text-xl font-bold'>Chargement du Top 10...</p>
+					<p className='text-gray-600 text-sm mt-1'>Données TMDB en cours de récupération</p>
 				</div>
 			</div>
 		);
@@ -197,15 +218,12 @@ const Trending = () => {
 
 	if (error) {
 		return (
-			<div className='min-h-screen bg-gray-900 flex items-center justify-center'>
-				<div className='text-center bg-gray-800 p-8 rounded-2xl border border-gray-700'>
-					<div className='text-5xl mb-4'>😕</div>
-					<p className='text-red-400 text-lg font-semibold mb-2'>Erreur de chargement</p>
-					<p className='text-gray-400 text-sm mb-6'>{error}</p>
-					<button
-						onClick={() => fetchFromAPI()}
-						className='px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-500 font-semibold transition-colors'>
-						🔄 Réessayer
+			<div className='min-h-screen bg-black flex items-center justify-center'>
+				<div className='text-center'>
+					<p className='text-5xl mb-4'>😕</p>
+					<p className='text-red-400 text-lg font-bold mb-4'>{error}</p>
+					<button onClick={() => fetchFromAPI()} className='px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-500'>
+						Réessayer
 					</button>
 				</div>
 			</div>
@@ -213,85 +231,72 @@ const Trending = () => {
 	}
 
 	return (
-		<div className='min-h-screen bg-gray-900'>
-			{/* Hero Banner */}
-			<div className='relative overflow-hidden bg-gradient-to-br from-gray-900 via-blue-950 to-gray-900 pt-10 pb-8 px-6'>
-				{/* Background decoration */}
-				<div className='absolute inset-0 opacity-10'>
-					<div className='absolute top-4 left-1/4 w-64 h-64 bg-blue-500 rounded-full blur-3xl' />
-					<div className='absolute bottom-0 right-1/4 w-48 h-48 bg-purple-500 rounded-full blur-3xl' />
+		<div className='min-h-screen bg-black'>
+			{/* Hero */}
+			<div className='relative flex flex-col items-center justify-center py-24 px-6 overflow-hidden'>
+				{/* Background glow */}
+				<div className='absolute inset-0'>
+					<div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl' />
 				</div>
-				<div className='relative max-w-3xl mx-auto text-center'>
-					<div className='inline-flex items-center gap-2 bg-gray-800/60 border border-gray-700 px-4 py-1.5 rounded-full text-xs text-gray-400 mb-4'>
-						<div className='w-2 h-2 rounded-full bg-green-400 animate-pulse' />
-						Mis à jour le {lastUpdated}
-					</div>
-					<h1 className='text-5xl font-black text-white mb-2 tracking-tight'>
-						Top 10 <span className='text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400'>de la Semaine</span>
+				<div className='relative text-center'>
+					<h1 className='text-8xl font-black text-blue-400 leading-none tracking-tighter mb-4'
+						style={{ textShadow: '0 0 80px rgba(96,165,250,0.5)' }}>
+						TOP 10
 					</h1>
-					<p className='text-gray-400 text-sm'>Classement mis à jour automatiquement chaque semaine</p>
-				</div>
-			</div>
+					<p className='text-3xl font-black text-white uppercase tracking-widest mb-3'>
+						{activeTab === 'movies' ? 'Films les plus populaires' : 'Séries les plus populaires'}
+					</p>
+					<p className='text-gray-400 text-base mb-10'>
+						Sur les 7 derniers jours • Mis à jour chaque semaine
+					</p>
 
-			{/* Tabs */}
-			<div className='max-w-3xl mx-auto px-6 py-6'>
-				<div className='flex gap-2 bg-gray-800 p-1 rounded-2xl w-fit mx-auto mb-10'>
-					{[
-						{ key: 'movies', icon: '🎬', label: 'Films' },
-						{ key: 'series', icon: '📺', label: 'Séries' },
-					].map(tab => (
-						<button
-							key={tab.key}
-							onClick={() => setActiveTab(tab.key)}
-							className={`px-8 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-								activeTab === tab.key
-									? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50 scale-105'
-									: 'text-gray-400 hover:text-white'
-							}`}>
-							{tab.icon} {tab.label}
-						</button>
-					))}
-				</div>
-
-				{/* Podium Top 3 */}
-				{podium.length >= 3 && (
-					<div className='mb-10'>
-						<h2 className='text-center text-gray-500 text-xs font-semibold uppercase tracking-widest mb-6'>
-							Podium
-						</h2>
-						<div className='flex items-end justify-center gap-6'>
-							<PodiumCard item={podium[1]} rank={2} onClick={handleItemClick} animDelay={200} />
-							<PodiumCard item={podium[0]} rank={1} onClick={handleItemClick} animDelay={0} />
-							<PodiumCard item={podium[2]} rank={3} onClick={handleItemClick} animDelay={400} />
-						</div>
-					</div>
-				)}
-
-				{/* Full Top 10 */}
-				<div className='bg-gray-800/50 rounded-2xl border border-gray-700/50 overflow-hidden'>
-					<div className='px-6 py-4 border-b border-gray-700/50 flex items-center justify-between'>
-						<h2 className='text-white font-bold'>
-							{activeTab === 'movies' ? '🎬 Top 10 Films' : '📺 Top 10 Séries'}
-						</h2>
-						<span className='text-gray-500 text-xs'>Semaine en cours</span>
-					</div>
-					<div className='divide-y divide-gray-700/30'>
-						{currentData.map((item, i) => (
-							<ListCard
-								key={item.id}
-								item={item}
-								rank={item.rank}
-								onClick={handleItemClick}
-								animDelay={i * 60}
-							/>
+					{/* Tabs */}
+					<div className='flex gap-2 bg-gray-900 p-1.5 rounded-2xl border border-gray-800 w-fit mx-auto'>
+						{[
+							{ key: 'movies', label: 'Films' },
+							{ key: 'series', label: 'Séries' },
+						].map(tab => (
+							<button
+								key={tab.key}
+								onClick={() => setActiveTab(tab.key)}
+								className={`px-10 py-3 rounded-xl font-bold text-base transition-all duration-200 ${
+									activeTab === tab.key
+										? 'bg-blue-600 text-white shadow-lg shadow-blue-900/60'
+										: 'text-gray-400 hover:text-white'
+								}`}>
+								{tab.label}
+							</button>
 						))}
 					</div>
 				</div>
-
-				<p className='text-center text-gray-700 text-xs mt-6'>
-					Données fournies par TMDB • Actualisées chaque semaine
-				</p>
 			</div>
+
+			{/* Stats bar */}
+			<div className='grid grid-cols-2 md:grid-cols-4 border-t border-b border-gray-800/50 mb-12'>
+				{[
+					{ icon: '⚡', color: 'text-blue-400', label: 'Films classés', value: currentData.length },
+					{ icon: '🗳️', color: 'text-purple-400', label: 'Total votes', value: totalVotes >= 1000 ? `${(totalVotes/1000).toFixed(0)}k` : totalVotes },
+					{ icon: '⭐', color: 'text-yellow-400', label: 'Note moyenne', value: avgRating },
+					{ icon: '📅', color: 'text-green-400', label: 'Semaine', value: `S${Math.ceil((new Date() - new Date(new Date().getFullYear(),0,1))/604800000)}` },
+				].map((stat, i) => (
+					<div key={i} className='flex flex-col items-center justify-center py-8 border-r border-gray-800/50 last:border-r-0'>
+						<span className={`text-2xl mb-2 ${stat.color}`}>{stat.icon}</span>
+						<span className={`text-xs uppercase tracking-widest mb-2 ${stat.color}`}>{stat.label}</span>
+						<span className='text-4xl font-black text-white'>{stat.value}</span>
+					</div>
+				))}
+			</div>
+
+			{/* List */}
+			<div className='max-w-5xl mx-auto px-6 pb-16 space-y-3'>
+				{currentData.map(item => (
+					<TrendingCard key={item.id} item={item} onClick={handleClick} />
+				))}
+			</div>
+
+			<p className='text-center text-gray-800 text-xs pb-8'>
+				Données fournies par TMDB • Actualisées chaque semaine
+			</p>
 		</div>
 	);
 };
