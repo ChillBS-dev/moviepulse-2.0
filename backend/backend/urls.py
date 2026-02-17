@@ -18,3 +18,9 @@ urlpatterns = [
     ...
     path('api/trending/', get_trending),  # ajoutez cette ligne
 ]
+from movieapp.views import get_trending  # ajoutez cet import
+
+urlpatterns = [
+    ...
+    path('api/trending/', get_trending),  # ajoutez cette ligne
+]
