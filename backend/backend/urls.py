@@ -12,3 +12,9 @@ if settings.DEBUG:
     urlpatterns = [
         path("__debug__/", include(debug_toolbar.urls)),
     ] + urlpatterns
+    from movieapp.views import get_trending  # ajoutez cet import
+
+urlpatterns = [
+    ...
+    path('api/trending/', get_trending),  # ajoutez cette ligne
+]
