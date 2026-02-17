@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .serializers import UserSerializer
 from rest_framework.generics import GenericAPIView
@@ -18,6 +18,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.views import APIView
 from django.core.cache import cache
+import requests
+from django.conf import settings
 
 
 @api_view(["GET"])
@@ -42,38 +44,6 @@ class UserCreateView(GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# class VerifyOTPView(GenericAPIView):
-#     def post(self, request):
-#         email = request.data.get("email")
-#         otp = request.data.get("otp")
-
-#         if not email or not otp:
-#             return Response(
-#                 {"error": "Email and OTP are required"},
-#                 status=status.HTTP_400_BAD_REQUEST,
-#             )
-
-#         try:
-#             user = User.objects.get(email=email)
-#         except User.DoesNotExist:
-#             return Response(
-#                 {"error": "User with this email does not exist"},
-#                 status=status.HTTP_404_NOT_FOUND,
-#             )
-
-#         try:
-#             otp_obj = OneTimePassword.objects.get(user=user, otp=otp)
-#         except OneTimePassword.DoesNotExist:
-#             return Response(
-#                 {"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST
-#             )
-#         otp_obj.delete()
-
-#         return Response(
-#             {"message": "OTP verified successfully"}, status=status.HTTP_200_OK
-#         )
-
-
 class LoginView(APIView):
     def post(self, request):
         email = request.data.get("email")
@@ -91,8 +61,6 @@ class LoginView(APIView):
                 {"error": "Invalid email or password"},
                 status=status.HTTP_401_UNAUTHORIZED,
             )
-        # if not user.otp_verified:
-        #     return "Remember to verify your account"
 
         refresh = RefreshToken.for_user(user)
         access_token = str(refresh.access_token)
@@ -107,8 +75,6 @@ class LoginView(APIView):
 
 
 class SearchMoviesView(APIView):
-    """Search movies - accessible to both authenticated and guest users with caching"""
-
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -133,8 +99,6 @@ class SearchMoviesView(APIView):
 
 
 class TopMoviesListView(APIView):
-    """Fetch top movies - accessible to both authenticated and guest users with caching"""
-
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -155,8 +119,6 @@ class TopMoviesListView(APIView):
 
 
 class MoviesByCategoryView(APIView):
-    """Fetch movies by category - accessible to both authenticated and guest users with caching"""
-
     permission_classes = [AllowAny]
 
     def get(self, request):
@@ -184,8 +146,6 @@ class MoviesByCategoryView(APIView):
 
 
 class MovieDetailView(APIView):
-    """Fetch movie details - accessible to both authenticated and guest users with caching"""
-
     permission_classes = [AllowAny]
 
     def get(self, request, movie_id):
@@ -198,17 +158,12 @@ class MovieDetailView(APIView):
             )
 
         return Response(data, status=status.HTTP_200_OK)
-import requests
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_trending(request):
-    """Get top 10 trending movies and TV shows for the week"""
+    """Get top 10 trending movies, TV shows and anime for the week"""
     access_token = settings.TMDB_ACCESS_TOKEN
     headers = {
         'Authorization': f'Bearer {access_token}',
@@ -216,51 +171,67 @@ def get_trending(request):
     }
 
     # Trending movies this week
-    movies_url = 'https://api.themoviedb.org/3/trending/movie/week'
-    movies_response = requests.get(movies_url, headers=headers, params={'language': 'fr-FR'})
-    movies_data = movies_response.json().get('results', [])[:10]
+    movies_res = requests.get(
+        'https://api.themoviedb.org/3/trending/movie/week',
+        headers=headers,
+        params={'language': 'fr-FR'}
+    )
+    movies_data = movies_res.json().get('results', [])[:10]
 
     # Trending TV shows this week
-    tv_url = 'https://api.themoviedb.org/3/trending/tv/week'
-    tv_response = requests.get(tv_url, headers=headers, params={'language': 'fr-FR'})
-    tv_data = tv_response.json().get('results', [])[:10]
+    tv_res = requests.get(
+        'https://api.themoviedb.org/3/trending/tv/week',
+        headers=headers,
+        params={'language': 'fr-FR'}
+    )
+    tv_data = tv_res.json().get('results', [])[:10]
 
-    # Format movies
-    movies = []
-    for i, movie in enumerate(movies_data):
-        movies.append({
+    # Anime : Japanese animation
+    anime_res = requests.get(
+        'https://api.themoviedb.org/3/discover/tv',
+        headers=headers,
+        params={
+            'language': 'fr-FR',
+            'with_genres': '16',
+            'with_original_language': 'ja',
+            'sort_by': 'popularity.desc',
+            'page': 1,
+        }
+    )
+    anime_data = anime_res.json().get('results', [])[:10]
+
+    def format_movie(i, item):
+        return {
             'rank': i + 1,
-            'id': movie.get('id'),
-            'title': movie.get('title', movie.get('name', 'N/A')),
-            'poster_path': movie.get('poster_path'),
-            'backdrop_path': movie.get('backdrop_path'),
-            'overview': movie.get('overview', ''),
-            'vote_average': round(movie.get('vote_average', 0), 1),
-            'vote_count': movie.get('vote_count', 0),
-            'release_date': movie.get('release_date', ''),
+            'id': item.get('id'),
+            'title': item.get('title', item.get('name', 'N/A')),
+            'poster_path': item.get('poster_path'),
+            'backdrop_path': item.get('backdrop_path'),
+            'overview': item.get('overview', ''),
+            'vote_average': round(item.get('vote_average', 0), 1),
+            'vote_count': item.get('vote_count', 0),
+            'release_date': item.get('release_date', item.get('first_air_date', '')),
             'media_type': 'movie',
-            'genre_ids': movie.get('genre_ids', []),
-        })
+            'genre_ids': item.get('genre_ids', []),
+        }
 
-    # Format TV shows
-    series = []
-    for i, show in enumerate(tv_data):
-        series.append({
+    def format_tv(i, item):
+        return {
             'rank': i + 1,
-            'id': show.get('id'),
-            'title': show.get('name', show.get('title', 'N/A')),
-            'poster_path': show.get('poster_path'),
-            'backdrop_path': show.get('backdrop_path'),
-            'overview': show.get('overview', ''),
-            'vote_average': round(show.get('vote_average', 0), 1),
-            'vote_count': show.get('vote_count', 0),
-            'release_date': show.get('first_air_date', ''),
+            'id': item.get('id'),
+            'title': item.get('name', item.get('title', 'N/A')),
+            'poster_path': item.get('poster_path'),
+            'backdrop_path': item.get('backdrop_path'),
+            'overview': item.get('overview', ''),
+            'vote_average': round(item.get('vote_average', 0), 1),
+            'vote_count': item.get('vote_count', 0),
+            'release_date': item.get('first_air_date', ''),
             'media_type': 'tv',
-            'genre_ids': show.get('genre_ids', []),
-        })
+            'genre_ids': item.get('genre_ids', []),
+        }
 
     return Response({
-        'movies': movies,
-        'series': series,
-        'week': 'Cette semaine'
+        'movies': [format_movie(i, m) for i, m in enumerate(movies_data)],
+        'series': [format_tv(i, s) for i, s in enumerate(tv_data)],
+        'anime': [format_tv(i, a) for i, a in enumerate(anime_data)],
     })
