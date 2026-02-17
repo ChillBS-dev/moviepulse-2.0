@@ -1,4 +1,3 @@
-import SidebarPage from '../Components/SidebarPage';
 import TopBar from '../Components/TopBar';
 import Catalogue from '../Components/Catalogue';
 import { useApp } from '../Contexts/AppContext';
