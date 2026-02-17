@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import Search from './UI/Search';
 import Card from './UI/Card';
 import Loading from './Loading';
@@ -16,14 +15,13 @@ function Catalogue() {
 	} = useMovie(searchQuery, currentPage);
 
 	useEffect(() => {
-		// Log to debug
 		console.log('Search Query:', searchQuery);
 		console.log('Current Page:', currentPage);
 	}, [searchQuery, currentPage]);
 
 	const handleClick = (val) => {
 		setSearchQuery(val);
-		setCurrentPage(1); // Reset to first page on search query change
+		setCurrentPage(1);
 	};
 
 	const handlePageChange = (newPage) => {
@@ -41,29 +39,29 @@ function Catalogue() {
 						<li
 							onClick={() => handleClick('Movies')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
-								searchQuery === 'Movies' 
-									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' 
+								searchQuery === 'Movies'
+									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
 									: 'text-gray-300 hover:text-white hover:bg-gray-700'
 							}`}>
-							Movies
+							🎬 Films
 						</li>
 						<li
 							onClick={() => handleClick('Series')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
-								searchQuery === 'Series' 
-									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' 
+								searchQuery === 'Series'
+									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
 									: 'text-gray-300 hover:text-white hover:bg-gray-700'
 							}`}>
-							Series
+							📺 Séries
 						</li>
 						<li
-							onClick={() => handleClick('Documentaries')}
+							onClick={() => handleClick('Anime')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
-								searchQuery === 'Documentaries' 
-									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50' 
+								searchQuery === 'Anime'
+									? 'bg-pink-600 text-white shadow-lg shadow-pink-600/50'
 									: 'text-gray-300 hover:text-white hover:bg-gray-700'
 							}`}>
-							Documentaries
+							⛩️ Anime
 						</li>
 					</ul>
 				</nav>
@@ -78,7 +76,7 @@ function Catalogue() {
 			<div className='mt-10 mb-6 flex items-center gap-3'>
 				<h2 className='text-white font-bold text-3xl md:text-4xl'>{searchQuery}</h2>
 				{!isLoading && movies.length > 0 && (
-					<span className='text-gray-400 text-lg'>({movies.length} results)</span>
+					<span className='text-gray-400 text-lg'>({movies.length} résultats)</span>
 				)}
 			</div>
 
@@ -99,8 +97,8 @@ function Catalogue() {
 								<svg className='w-24 h-24 text-gray-700 mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z' />
 								</svg>
-								<p className='text-gray-400 text-lg'>No movies found</p>
-								<p className='text-gray-500 text-sm mt-2'>Try adjusting your search query</p>
+								<p className='text-gray-400 text-lg'>Aucun résultat trouvé</p>
+								<p className='text-gray-500 text-sm mt-2'>Essayez une autre recherche</p>
 							</div>
 						)}
 					</div>
@@ -115,19 +113,19 @@ function Catalogue() {
 								<svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
 								</svg>
-								Previous
+								Précédent
 							</button>
 							<div className='flex items-center gap-2 bg-gray-800 px-6 py-3 rounded-lg border border-gray-700 shadow-lg'>
 								<span className='text-white font-medium'>Page</span>
 								<span className='text-blue-400 font-bold text-lg'>{currentPage}</span>
-								<span className='text-gray-400'>of</span>
+								<span className='text-gray-400'>sur</span>
 								<span className='text-white font-medium'>{totalPages}</span>
 							</div>
 							<button
 								onClick={() => handlePageChange(currentPage + 1)}
 								disabled={currentPage === totalPages}
 								className='bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-gray-700 hover:border-gray-600 flex items-center gap-2 shadow-lg'>
-								Next
+								Suivant
 								<svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
 								</svg>
