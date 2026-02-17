@@ -16,7 +16,7 @@ const useMovie = (searchQuery, currentPage) => {
 				
 				// Check if it's a search query or category
 				if (searchQuery && searchQuery.trim() !== '' && 
-				    !['Movies', 'Series', 'Documentaries', 'Trending'].includes(searchQuery)) {
+				    !['Movies', 'Series', 'Anime', 'Trending'].includes(searchQuery)) {
 					// Search for specific movies
 					data = await apiClient.get(API_ENDPOINTS.searchMovies, {
 						query: searchQuery,
@@ -45,13 +45,11 @@ const useMovie = (searchQuery, currentPage) => {
 				// Handle paginated response
 				if (data.results) {
 					setMovies(data.results);
-					// also populate AppContext cache for client-side search
+					// Also populate AppContext cache for client-side search
 					try {
 						setLocalMovies(Array.isArray(data.results) ? data.results : []);
 					} catch (err) {
-						// If AppContext isn't available for some reason, ignore
-						// (useMovie is expected to be used within AppProvider)
-						// console.warn('Could not set localMovies', err);
+						// If AppContext isn't available, ignore
 					}
 					setTotalPages(data.total_pages || Math.ceil(data.count / 10));
 				} else {
