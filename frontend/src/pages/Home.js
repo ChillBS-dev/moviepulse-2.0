@@ -9,7 +9,6 @@ function Home() {
 	return (
 		<div className='md:flex flex-row min-h-screen bg-gray-900'>
 			<div className={`${user ? 'hidden md:flex' : 'hidden'}`}>
-				<SidebarPage />
 			</div>
 			<div
 				className={`${user ? 'md:ml-56 basis-11/12' : 'w-full'} bg-gray-900`}>
