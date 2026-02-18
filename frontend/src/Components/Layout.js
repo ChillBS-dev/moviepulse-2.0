@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
+import { useApp } from '../Contexts/AppContext';
 
 const Layout = ({ children }) => {
+	const { theme } = useApp();
+
+	useEffect(() => {
+		document.body.className = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
+	}, [theme]);
+
 	return (
-		<div className='flex min-h-screen bg-gray-900'>
+		<div className={`flex min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
 			<Sidebar />
-			{/* Main content - offset by sidebar width */}
-			<div className='flex-1 ml-56 transition-all duration-300 min-h-screen'>
+			<div className={`flex-1 ml-56 transition-all duration-300 min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
 				{children}
 			</div>
 		</div>
