@@ -20,6 +20,8 @@ from rest_framework.views import APIView
 from django.core.cache import cache
 import requests
 from django.conf import settings
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 
 @api_view(["GET"])
@@ -241,3 +243,87 @@ def get_trending(request):
         'series': [format_tv(i, s) for i, s in enumerate(series_data)],
         'anime': [format_tv(i, a) for i, a in enumerate(anime_data)],
     })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """Change user password"""
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+
+    if not old_password or not new_password:
+        return Response(
+            {'error': 'Both old and new passwords are required'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if not user.check_password(old_password):
+        return Response(
+            {'error': 'Old password is incorrect'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    try:
+        validate_password(new_password, user)
+    except ValidationError as e:
+        return Response(
+            {'error': list(e.messages)},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user.set_password(new_password)
+    user.save()
+
+    return Response(
+        {'message': 'Password changed successfully'},
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    """Update user profile (name, avatar)"""
+    user = request.user
+    
+    first_name = request.data.get('first_name')
+    last_name = request.data.get('last_name')
+    avatar = request.data.get('avatar')
+
+    if first_name:
+        user.first_name = first_name
+    if last_name:
+        user.last_name = last_name
+    
+    user.save()
+
+    return Response(
+        {
+            'message': 'Profile updated successfully',
+            'user': {
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+            }
+        },
+        status=status.HTTP_200_OK
+    )
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    """Get current user profile"""
+    user = request.user
+    
+    return Response(
+        {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+            'avatar': getattr(user, 'avatar', None),
+        },
+        status=status.HTTP_200_OK
+    )
