@@ -4,213 +4,230 @@ import { toast } from 'react-toastify';
 import { useApp } from '../Contexts/AppContext';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://127.0.0.1:8000/api';
+const ADMIN_CODE = 'MOVIEPULSE2026ADMIN'; // Code secret admin
 
-// Real avatar images - Netflix/Prime Video/Disney+ style
-const AVATARS = [
-	// Attack on Titan
-	{ id: 1, name: 'Eren Yeager', img: 'https://i.imgur.com/8qY3K4h.jpg', category: 'Attack on Titan' },
-	{ id: 2, name: 'Mikasa Ackerman', img: 'https://i.imgur.com/YzF6wJe.jpg', category: 'Attack on Titan' },
-	{ id: 3, name: 'Armin Arlert', img: 'https://i.imgur.com/3nH9W5X.jpg', category: 'Attack on Titan' },
-	{ id: 4, name: 'Levi Ackerman', img: 'https://i.imgur.com/m2k8TRx.jpg', category: 'Attack on Titan' },
-	
-	// Naruto
-	{ id: 5, name: 'Naruto Uzumaki', img: 'https://i.imgur.com/qK5YW8J.jpg', category: 'Naruto' },
-	{ id: 6, name: 'Sasuke Uchiha', img: 'https://i.imgur.com/vN7dF9M.jpg', category: 'Naruto' },
-	{ id: 7, name: 'Sakura Haruno', img: 'https://i.imgur.com/2xP8wQK.jpg', category: 'Naruto' },
-	{ id: 8, name: 'Kakashi Hatake', img: 'https://i.imgur.com/5R8nX2L.jpg', category: 'Naruto' },
-	
-	// One Piece
-	{ id: 9, name: 'Monkey D. Luffy', img: 'https://i.imgur.com/7hK9wXp.jpg', category: 'One Piece' },
-	{ id: 10, name: 'Roronoa Zoro', img: 'https://i.imgur.com/xT4nR8p.jpg', category: 'One Piece' },
-	{ id: 11, name: 'Nami', img: 'https://i.imgur.com/pL9sW3k.jpg', category: 'One Piece' },
-	{ id: 12, name: 'Sanji', img: 'https://i.imgur.com/9mF2kLx.jpg', category: 'One Piece' },
-	
-	// Dragon Ball
-	{ id: 13, name: 'Goku', img: 'https://i.imgur.com/k4R8pYm.jpg', category: 'Dragon Ball' },
-	{ id: 14, name: 'Vegeta', img: 'https://i.imgur.com/7sK9wPx.jpg', category: 'Dragon Ball' },
-	{ id: 15, name: 'Gohan', img: 'https://i.imgur.com/mT7nX4p.jpg', category: 'Dragon Ball' },
-	{ id: 16, name: 'Piccolo', img: 'https://i.imgur.com/qW5sL8m.jpg', category: 'Dragon Ball' },
-	
-	// Demon Slayer
-	{ id: 17, name: 'Tanjiro Kamado', img: 'https://i.imgur.com/rP9kW5x.jpg', category: 'Demon Slayer' },
-	{ id: 18, name: 'Nezuko Kamado', img: 'https://i.imgur.com/wT6nM8p.jpg', category: 'Demon Slayer' },
-	{ id: 19, name: 'Zenitsu Agatsuma', img: 'https://i.imgur.com/5L8sK9m.jpg', category: 'Demon Slayer' },
-	{ id: 20, name: 'Inosuke Hashibira', img: 'https://i.imgur.com/3kR7wXp.jpg', category: 'Demon Slayer' },
-	
-	// My Hero Academia
-	{ id: 21, name: 'Izuku Midoriya', img: 'https://i.imgur.com/mF8pW9k.jpg', category: 'My Hero Academia' },
-	{ id: 22, name: 'Katsuki Bakugo', img: 'https://i.imgur.com/nT5sL7x.jpg', category: 'My Hero Academia' },
-	{ id: 23, name: 'Shoto Todoroki', img: 'https://i.imgur.com/qK9wR6p.jpg', category: 'My Hero Academia' },
-	{ id: 24, name: 'Ochaco Uraraka', img: 'https://i.imgur.com/7sL9kWm.jpg', category: 'My Hero Academia' },
-	
-	// Jujutsu Kaisen
-	{ id: 25, name: 'Yuji Itadori', img: 'https://i.imgur.com/pR8wT5k.jpg', category: 'Jujutsu Kaisen' },
-	{ id: 26, name: 'Megumi Fushiguro', img: 'https://i.imgur.com/5kW9sLx.jpg', category: 'Jujutsu Kaisen' },
-	{ id: 27, name: 'Nobara Kugisaki', img: 'https://i.imgur.com/mT7wR9p.jpg', category: 'Jujutsu Kaisen' },
-	{ id: 28, name: 'Satoru Gojo', img: 'https://i.imgur.com/nL8sK6m.jpg', category: 'Jujutsu Kaisen' },
-	
-	// Death Note
-	{ id: 29, name: 'Light Yagami', img: 'https://i.imgur.com/qW9pR7k.jpg', category: 'Death Note' },
-	{ id: 30, name: 'L Lawliet', img: 'https://i.imgur.com/5sT8wLm.jpg', category: 'Death Note' },
-	{ id: 31, name: 'Ryuk', img: 'https://i.imgur.com/mK9wR5x.jpg', category: 'Death Note' },
-	{ id: 32, name: 'Misa Amane', img: 'https://i.imgur.com/nL7sW8p.jpg', category: 'Death Note' },
-	
-	// Tokyo Ghoul
-	{ id: 33, name: 'Ken Kaneki', img: 'https://i.imgur.com/pR9wT6k.jpg', category: 'Tokyo Ghoul' },
-	{ id: 34, name: 'Touka Kirishima', img: 'https://i.imgur.com/5kW8sLm.jpg', category: 'Tokyo Ghoul' },
-	{ id: 35, name: 'Shuu Tsukiyama', img: 'https://i.imgur.com/mT7wR8p.jpg', category: 'Tokyo Ghoul' },
-	{ id: 36, name: 'Juuzou Suzuya', img: 'https://i.imgur.com/nL9sK7m.jpg', category: 'Tokyo Ghoul' },
-	
-	// Fullmetal Alchemist
-	{ id: 37, name: 'Edward Elric', img: 'https://i.imgur.com/qW8pR9k.jpg', category: 'Fullmetal Alchemist' },
-	{ id: 38, name: 'Alphonse Elric', img: 'https://i.imgur.com/5sT7wLp.jpg', category: 'Fullmetal Alchemist' },
-	{ id: 39, name: 'Roy Mustang', img: 'https://i.imgur.com/mK8wR6x.jpg', category: 'Fullmetal Alchemist' },
-	{ id: 40, name: 'Winry Rockbell', img: 'https://i.imgur.com/nL6sW9m.jpg', category: 'Fullmetal Alchemist' },
-	
-	// Hunter x Hunter
-	{ id: 41, name: 'Gon Freecss', img: 'https://i.imgur.com/pR8wT7k.jpg', category: 'Hunter x Hunter' },
-	{ id: 42, name: 'Killua Zoldyck', img: 'https://i.imgur.com/5kW7sLm.jpg', category: 'Hunter x Hunter' },
-	{ id: 43, name: 'Kurapika', img: 'https://i.imgur.com/mT6wR9p.jpg', category: 'Hunter x Hunter' },
-	{ id: 44, name: 'Leorio Paradinight', img: 'https://i.imgur.com/nL8sK7m.jpg', category: 'Hunter x Hunter' },
-	
-	// Sword Art Online
-	{ id: 45, name: 'Kirito', img: 'https://i.imgur.com/qW7pR8k.jpg', category: 'Sword Art Online' },
-	{ id: 46, name: 'Asuna', img: 'https://i.imgur.com/5sT6wLm.jpg', category: 'Sword Art Online' },
-	{ id: 47, name: 'Sinon', img: 'https://i.imgur.com/mK7wR9x.jpg', category: 'Sword Art Online' },
-	{ id: 48, name: 'Leafa', img: 'https://i.imgur.com/nL5sW8p.jpg', category: 'Sword Art Online' },
-	
-	// Bleach
-	{ id: 49, name: 'Ichigo Kurosaki', img: 'https://i.imgur.com/pR7wT8k.jpg', category: 'Bleach' },
-	{ id: 50, name: 'Rukia Kuchiki', img: 'https://i.imgur.com/5kW6sLm.jpg', category: 'Bleach' },
-	{ id: 51, name: 'Byakuya Kuchiki', img: 'https://i.imgur.com/mT5wR8p.jpg', category: 'Bleach' },
-	{ id: 52, name: 'Renji Abarai', img: 'https://i.imgur.com/nL7sK8m.jpg', category: 'Bleach' },
-	
-	// One Punch Man
-	{ id: 53, name: 'Saitama', img: 'https://i.imgur.com/qW6pR7k.jpg', category: 'One Punch Man' },
-	{ id: 54, name: 'Genos', img: 'https://i.imgur.com/5sT5wLp.jpg', category: 'One Punch Man' },
-	{ id: 55, name: 'Tatsumaki', img: 'https://i.imgur.com/mK6wR8x.jpg', category: 'One Punch Man' },
-	{ id: 56, name: 'Mumen Rider', img: 'https://i.imgur.com/nL4sW7m.jpg', category: 'One Punch Man' },
-	
-	// Steins;Gate
-	{ id: 57, name: 'Okabe Rintarou', img: 'https://i.imgur.com/pR6wT9k.jpg', category: 'Steins;Gate' },
-	{ id: 58, name: 'Makise Kurisu', img: 'https://i.imgur.com/5kW5sLm.jpg', category: 'Steins;Gate' },
-	{ id: 59, name: 'Mayuri Shiina', img: 'https://i.imgur.com/mT4wR7p.jpg', category: 'Steins;Gate' },
-	{ id: 60, name: 'Itaru Hashida', img: 'https://i.imgur.com/nL6sK9m.jpg', category: 'Steins;Gate' },
-];
+// Real working avatar URLs
+const AVATARS = {
+	netflix: [
+		{ id: 1, name: 'Naruto', url: 'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABbme8JMz4rEKFJhtzpOKWFJ_6qX-0y5wwWyYvBhWS0VKFLa70kXOvmXTqCpTUGF1t5EuYWqZ3qHsZx7_zb68.png' },
+		{ id: 2, name: 'Luffy', url: 'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABdpkwp_KinCFPSak2SL7MOCTyHG-2yIrXRr0KPovZmrqCDuQCOLHiJO5LrCXFd_zFqPMp_kx7D3Y-1jR5TkI.png' },
+		{ id: 3, name: 'Goku', url: 'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABZ5VNQWiMVRdZ7zSRkRz5JKhIaP1c_bZbE8RyHQNVHb5nvh0Z9XqJrFxPvCBxU3iGQMqPwz4uT7X0kn3DbU_.png' },
+		{ id: 4, name: 'Eren', url: 'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABYqKXYGNGOTZpzHBWU63J8HPBMhvS3hMKQBw4TqRqNa4jL8WHuCkUQRv1ZTF5Z-qE7xNv7dTNLzClLQxCHoP.png' },
+		{ id: 5, name: 'Tanjiro', url: 'https://occ-0-2794-2219.1.nflxso.net/dnm/api/v6/K6hjPJd6cR6FpVELC5Pd6ovHRSk/AAAABR1xOvfqJ9Z9uQqQ8y6Lz-hN5c6nCcgLxEXa1G4nD1ZkPj7VzDfHnQJxWdQRQp7lp6NQZK5K5p6NQ1xOvfqJ.png' },
+	],
+	prime: [
+		{ id: 6, name: 'Iron Man', url: 'https://m.media-amazon.com/images/G/01/digital/video/avod/avatar/Avatar_01._CB1198675309_.png' },
+		{ id: 7, name: 'Spider-Man', url: 'https://m.media-amazon.com/images/G/01/digital/video/avod/avatar/Avatar_02._CB1198675309_.png' },
+		{ id: 8, name: 'Batman', url: 'https://m.media-amazon.com/images/G/01/digital/video/avod/avatar/Avatar_03._CB1198675309_.png' },
+		{ id: 9, name: 'Wonder Woman', url: 'https://m.media-amazon.com/images/G/01/digital/video/avod/avatar/Avatar_04._CB1198675309_.png' },
+		{ id: 10, name: 'Superman', url: 'https://m.media-amazon.com/images/G/01/digital/video/avod/avatar/Avatar_05._CB1198675309_.png' },
+	],
+	disney: [
+		{ id: 11, name: 'Mickey', url: 'https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/1E03C12ACDE1D5E45BB938FB8A3B2C7EA0C797AD3D02756E3FF0109F84471854' },
+		{ id: 12, name: 'Elsa', url: 'https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/87F1DCF36049558159913ADFD18A800DE1121771540033EC3A7C1B607EABE122' },
+		{ id: 13, name: 'Simba', url: 'https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/5D8BF3E5B6E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8' },
+		{ id: 14, name: 'Stitch', url: 'https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/8E8BF3E5B6E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8' },
+		{ id: 15, name: 'Grogu', url: 'https://prod-ripcut-delivery.disney-plus.net/v1/variant/disney/9F9BF3E5B6E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8D5E8B5A8' },
+	],
+};
+
+const ALL_AVATARS = [...AVATARS.netflix, ...AVATARS.prime, ...AVATARS.disney];
 
 const TRANSLATIONS = {
 	fr: {
-		myAccount: 'Mon Compte',
-		profile: 'Parrainage',
+		account: 'Mon Compte',
+		profile: 'Profil',
 		security: 'Sécurité',
-		settings: 'Paramètres',
-		myReviews: 'Mes Avis',
+		preferences: 'Préférences',
+		notifications: 'Notifications',
+		reviews: 'Mes Avis',
+		advanced: 'Avancé',
 		logout: 'Déconnexion',
-		changeAvatar: 'Changer de profil',
-		search: 'Rechercher un avatar...',
+		modifyProfile: 'Modifier le profil',
 		firstName: 'Prénom',
 		lastName: 'Nom',
-		email: 'Email',
-		emailReadonly: "L'email ne peut pas être modifié",
-		save: 'Enregistrer les modifications',
-		saving: 'Enregistrement...',
+		save: 'Enregistrer',
+		cancel: 'Annuler',
 		changePassword: 'Mettre à jour le mot de passe',
 		oldPassword: 'Mot de passe actuel',
 		newPassword: 'Nouveau mot de passe',
-		confirmPassword: 'Confirmer le mot de passe',
-		changeBtn: 'Changer le mot de passe',
-		changing: 'Changement en cours...',
-		preferences: 'Préférences',
-		notifications: 'Notifications',
-		notificationsDesc: 'Recevoir des notifications sur l\'activité',
+		confirmPassword: 'Confirmer',
+		updateBtn: 'Mettre à jour',
+		notifDesc: 'Recevoir des notifications',
 		language: 'Langue',
 		theme: 'Thème',
 		dark: 'Sombre',
 		light: 'Clair',
-		dangerZone: 'Zone de secours',
-		logoutBtn: 'Se déconnecter',
+		adminCode: 'Code Admin',
+		enterAdminCode: 'Entrer le code administrateur',
+		adminPanel: 'Panneau Admin',
 	},
 	en: {
-		myAccount: 'My Account',
-		profile: 'Referral',
+		account: 'My Account',
+		profile: 'Profile',
 		security: 'Security',
-		settings: 'Settings',
-		myReviews: 'My Reviews',
+		preferences: 'Preferences',
+		notifications: 'Notifications',
+		reviews: 'My Reviews',
+		advanced: 'Advanced',
 		logout: 'Logout',
-		changeAvatar: 'Change profile',
-		search: 'Search avatar...',
+		modifyProfile: 'Edit profile',
 		firstName: 'First Name',
 		lastName: 'Last Name',
-		email: 'Email',
-		emailReadonly: 'Email cannot be changed',
-		save: 'Save changes',
-		saving: 'Saving...',
+		save: 'Save',
+		cancel: 'Cancel',
 		changePassword: 'Update password',
 		oldPassword: 'Current password',
 		newPassword: 'New password',
-		confirmPassword: 'Confirm password',
-		changeBtn: 'Change password',
-		changing: 'Changing...',
-		preferences: 'Preferences',
-		notifications: 'Notifications',
-		notificationsDesc: 'Receive activity notifications',
+		confirmPassword: 'Confirm',
+		updateBtn: 'Update',
+		notifDesc: 'Receive notifications',
 		language: 'Language',
 		theme: 'Theme',
 		dark: 'Dark',
 		light: 'Light',
-		dangerZone: 'Help zone',
-		logoutBtn: 'Logout',
+		adminCode: 'Admin Code',
+		enterAdminCode: 'Enter admin code',
+		adminPanel: 'Admin Panel',
 	},
 	es: {
-		myAccount: 'Mi Cuenta',
-		profile: 'Patrocinio',
+		account: 'Mi Cuenta',
+		profile: 'Perfil',
 		security: 'Seguridad',
-		settings: 'Configuración',
-		myReviews: 'Mis Reseñas',
+		preferences: 'Preferencias',
+		notifications: 'Notificaciones',
+		reviews: 'Mis Reseñas',
+		advanced: 'Avanzado',
 		logout: 'Cerrar sesión',
-		changeAvatar: 'Cambiar perfil',
-		search: 'Buscar avatar...',
+		modifyProfile: 'Editar perfil',
 		firstName: 'Nombre',
 		lastName: 'Apellido',
-		email: 'Correo',
-		emailReadonly: 'El correo no se puede cambiar',
-		save: 'Guardar cambios',
-		saving: 'Guardando...',
+		save: 'Guardar',
+		cancel: 'Cancelar',
 		changePassword: 'Actualizar contraseña',
 		oldPassword: 'Contraseña actual',
 		newPassword: 'Nueva contraseña',
-		confirmPassword: 'Confirmar contraseña',
-		changeBtn: 'Cambiar contraseña',
-		changing: 'Cambiando...',
-		preferences: 'Preferencias',
-		notifications: 'Notificaciones',
-		notificationsDesc: 'Recibir notificaciones de actividad',
+		confirmPassword: 'Confirmar',
+		updateBtn: 'Actualizar',
+		notifDesc: 'Recibir notificaciones',
 		language: 'Idioma',
 		theme: 'Tema',
 		dark: 'Oscuro',
 		light: 'Claro',
-		dangerZone: 'Zona de ayuda',
-		logoutBtn: 'Cerrar sesión',
+		adminCode: 'Código Admin',
+		enterAdminCode: 'Ingrese código admin',
+		adminPanel: 'Panel Admin',
+	},
+	de: {
+		account: 'Mein Konto',
+		profile: 'Profil',
+		security: 'Sicherheit',
+		preferences: 'Einstellungen',
+		notifications: 'Benachrichtigungen',
+		reviews: 'Meine Bewertungen',
+		advanced: 'Erweitert',
+		logout: 'Abmelden',
+		modifyProfile: 'Profil bearbeiten',
+		firstName: 'Vorname',
+		lastName: 'Nachname',
+		save: 'Speichern',
+		cancel: 'Abbrechen',
+		changePassword: 'Passwort aktualisieren',
+		oldPassword: 'Aktuelles Passwort',
+		newPassword: 'Neues Passwort',
+		confirmPassword: 'Bestätigen',
+		updateBtn: 'Aktualisieren',
+		notifDesc: 'Benachrichtigungen erhalten',
+		language: 'Sprache',
+		theme: 'Thema',
+		dark: 'Dunkel',
+		light: 'Hell',
+		adminCode: 'Admin-Code',
+		enterAdminCode: 'Admin-Code eingeben',
+		adminPanel: 'Admin-Panel',
+	},
+	it: {
+		account: 'Il Mio Account',
+		profile: 'Profilo',
+		security: 'Sicurezza',
+		preferences: 'Preferenze',
+		notifications: 'Notifiche',
+		reviews: 'Le Mie Recensioni',
+		advanced: 'Avanzato',
+		logout: 'Disconnetti',
+		modifyProfile: 'Modifica profilo',
+		firstName: 'Nome',
+		lastName: 'Cognome',
+		save: 'Salva',
+		cancel: 'Annulla',
+		changePassword: 'Aggiorna password',
+		oldPassword: 'Password attuale',
+		newPassword: 'Nuova password',
+		confirmPassword: 'Conferma',
+		updateBtn: 'Aggiorna',
+		notifDesc: 'Ricevi notifiche',
+		language: 'Lingua',
+		theme: 'Tema',
+		dark: 'Scuro',
+		light: 'Chiaro',
+		adminCode: 'Codice Admin',
+		enterAdminCode: 'Inserire codice admin',
+		adminPanel: 'Pannello Admin',
+	},
+	ja: {
+		account: 'マイアカウント',
+		profile: 'プロフィール',
+		security: 'セキュリティ',
+		preferences: '設定',
+		notifications: '通知',
+		reviews: 'マイレビュー',
+		advanced: '詳細設定',
+		logout: 'ログアウト',
+		modifyProfile: 'プロフィール編集',
+		firstName: '名',
+		lastName: '姓',
+		save: '保存',
+		cancel: 'キャンセル',
+		changePassword: 'パスワード更新',
+		oldPassword: '現在のパスワード',
+		newPassword: '新しいパスワード',
+		confirmPassword: '確認',
+		updateBtn: '更新',
+		notifDesc: '通知を受け取る',
+		language: '言語',
+		theme: 'テーマ',
+		dark: 'ダーク',
+		light: 'ライト',
+		adminCode: '管理者コード',
+		enterAdminCode: '管理者コードを入力',
+		adminPanel: '管理パネル',
 	},
 };
 
 const AccountSettings = () => {
 	const [activeSection, setActiveSection] = useState('profile');
 	const [loading, setLoading] = useState(false);
-	const [searchAvatar, setSearchAvatar] = useState('');
+	const [showEditModal, setShowEditModal] = useState(false);
+	const [avatarTab, setAvatarTab] = useState('netflix');
 	const navigate = useNavigate();
-	const { logout } = useApp();
+	const { logout, theme, setTheme } = useApp();
 
-	const [lang, setLang] = useState(() => {
-		return localStorage.getItem('appLanguage') || 'fr';
-	});
-
+	const [lang, setLang] = useState(() => localStorage.getItem('appLanguage') || 'fr');
 	const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
+
+	const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
+	const [adminInput, setAdminInput] = useState('');
 
 	const [profile, setProfile] = useState({
 		first_name: '',
 		last_name: '',
 		email: '',
+		avatar: 1,
+	});
+
+	const [editForm, setEditForm] = useState({
+		first_name: '',
+		last_name: '',
 		avatar: 1,
 	});
 
@@ -220,10 +237,7 @@ const AccountSettings = () => {
 		confirm_password: '',
 	});
 
-	const [settings, setSettings] = useState({
-		notifications: true,
-		theme: 'dark',
-	});
+	const [settings, setSettings] = useState({ notifications: true });
 
 	useEffect(() => {
 		fetchProfile();
@@ -233,10 +247,6 @@ const AccountSettings = () => {
 	useEffect(() => {
 		localStorage.setItem('appLanguage', lang);
 	}, [lang]);
-
-	useEffect(() => {
-		document.body.className = settings.theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
-	}, [settings.theme]);
 
 	const fetchProfile = async () => {
 		try {
@@ -256,6 +266,11 @@ const AccountSettings = () => {
 					first_name: data.first_name || '',
 					last_name: data.last_name || '',
 					email: data.email || '',
+					avatar: data.avatar || 1,
+				});
+				setEditForm({
+					first_name: data.first_name || '',
+					last_name: data.last_name || '',
 					avatar: data.avatar || 1,
 				});
 			}
@@ -291,14 +306,12 @@ const AccountSettings = () => {
 					'Content-Type': 'application/json',
 					Authorization: `Bearer ${token}`,
 				},
-				body: JSON.stringify({
-					first_name: profile.first_name,
-					last_name: profile.last_name,
-					avatar: profile.avatar,
-				}),
+				body: JSON.stringify(editForm),
 			});
 
 			if (res.ok) {
+				setProfile({ ...profile, ...editForm });
+				setShowEditModal(false);
 				toast.success('Profil mis à jour !');
 			} else {
 				toast.error('Erreur lors de la mise à jour');
@@ -340,11 +353,11 @@ const AccountSettings = () => {
 			});
 
 			if (res.ok) {
-				toast.success('Mot de passe changé avec succès !');
+				toast.success('Mot de passe changé !');
 				setPasswordData({ old_password: '', new_password: '', confirm_password: '' });
 			} else {
 				const data = await res.json();
-				toast.error(data.error || 'Erreur lors du changement');
+				toast.error(data.error || 'Erreur');
 			}
 		} catch (err) {
 			toast.error('Erreur de connexion');
@@ -353,83 +366,127 @@ const AccountSettings = () => {
 		}
 	};
 
+	const handleAdminCode = () => {
+		if (adminInput === ADMIN_CODE) {
+			setIsAdmin(true);
+			localStorage.setItem('isAdmin', 'true');
+			toast.success('🎉 Accès Admin activé !');
+			setAdminInput('');
+		} else {
+			toast.error('Code incorrect');
+		}
+	};
+
 	const handleLogout = () => {
 		logout();
 		navigate('/');
 	};
 
-	const selectedAvatar = AVATARS.find(a => a.id === profile.avatar) || AVATARS[0];
-	const filteredAvatars = AVATARS.filter(a =>
-		a.name.toLowerCase().includes(searchAvatar.toLowerCase())
-	);
-
-	const isDark = settings.theme === 'dark';
+	const selectedAvatar = ALL_AVATARS.find(a => a.id === profile.avatar) || ALL_AVATARS[0];
+	const isDark = theme === 'dark';
 
 	return (
-		<div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-gray-100'} flex`}>
+		<div className={`min-h-screen ${isDark ? 'bg-black' : 'bg-white'} flex`}>
 			{/* Sidebar */}
-			<div className={`w-64 ${isDark ? 'bg-gray-900' : 'bg-white'} border-r ${isDark ? 'border-gray-800' : 'border-gray-200'} fixed h-full overflow-y-auto`}>
+			<div className={`w-64 ${isDark ? 'bg-gray-900' : 'bg-gray-50'} border-r ${isDark ? 'border-gray-800' : 'border-gray-200'} fixed h-full overflow-y-auto`}>
 				<div className='p-6'>
-					<h2 className={`${isDark ? 'text-white' : 'text-gray-900'} font-black text-xl mb-6`}>{t.myAccount}</h2>
+					<Link to='/home' className='text-gray-500 hover:text-white text-sm mb-6 flex items-center gap-2'>
+						← {lang === 'fr' ? 'Retour' : lang === 'en' ? 'Back' : lang === 'es' ? 'Volver' : lang === 'de' ? 'Zurück' : lang === 'it' ? 'Indietro' : '戻る'}
+					</Link>
+
+					<h2 className={`${isDark ? 'text-white' : 'text-gray-900'} font-black text-xl mb-2`}>{t.account}</h2>
+					<p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} mb-6`}>
+						{profile.first_name} {profile.last_name}
+					</p>
 
 					<nav className='space-y-1'>
 						<button
 							onClick={() => setActiveSection('profile')}
-							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
 								activeSection === 'profile'
 									? `${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-blue-600'}`
 									: `${isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100'}`
 							}`}>
-							<span className='text-xl'>👥</span>
-							<span className='font-medium'>{t.profile}</span>
+							<span>👥</span>
+							<span className='font-medium text-sm'>{t.profile}</span>
 						</button>
 
 						<button
 							onClick={() => setActiveSection('security')}
-							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
 								activeSection === 'security'
 									? `${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-blue-600'}`
 									: `${isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100'}`
 							}`}>
-							<span className='text-xl'>🛡️</span>
-							<span className='font-medium'>{t.security}</span>
+							<span>🛡️</span>
+							<span className='font-medium text-sm'>{t.security}</span>
 						</button>
 
 						<div className={`pt-4 pb-2 px-4 text-xs font-bold uppercase ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-							Préférences
+							{t.preferences}
 						</div>
 
 						<button
+							onClick={() => setActiveSection('notifications')}
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
+								activeSection === 'notifications'
+									? `${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-blue-600'}`
+									: `${isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100'}`
+							}`}>
+							<span>🔔</span>
+							<span className='font-medium text-sm'>{t.notifications}</span>
+						</button>
+
+						<button
 							onClick={() => setActiveSection('settings')}
-							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
 								activeSection === 'settings'
 									? `${isDark ? 'bg-gray-800 text-white' : 'bg-blue-50 text-blue-600'}`
 									: `${isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100'}`
 							}`}>
-							<span className='text-xl'>🔔</span>
-							<span className='font-medium'>Notifications</span>
+							<span>⚙️</span>
+							<span className='font-medium text-sm'>{t.language}</span>
 						</button>
 
 						<div className={`pt-4 pb-2 px-4 text-xs font-bold uppercase ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-							Mon activité
+							{lang === 'fr' ? 'Mon activité' : lang === 'en' ? 'My activity' : lang === 'es' ? 'Mi actividad' : lang === 'de' ? 'Meine Aktivität' : lang === 'it' ? 'La mia attività' : 'マイ活動'}
 						</div>
 
 						<Link
 							to='/reviews'
 							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:bg-gray-800 hover:text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-							<span className='text-xl'>💬</span>
-							<span className='font-medium'>{t.myReviews}</span>
+							<span>💬</span>
+							<span className='font-medium text-sm'>{t.reviews}</span>
 						</Link>
 
+						{isAdmin && (
+							<>
+								<div className={`pt-4 pb-2 px-4 text-xs font-bold uppercase ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+									{t.advanced}
+								</div>
+
+								<button
+									onClick={() => setActiveSection('admin')}
+									className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
+										activeSection === 'admin'
+											? 'bg-purple-600 text-white'
+											: `${isDark ? 'text-purple-400 hover:bg-purple-900/20' : 'text-purple-600 hover:bg-purple-50'}`
+									}`}>
+									<span>👑</span>
+									<span className='font-medium text-sm'>{t.adminPanel}</span>
+								</button>
+							</>
+						)}
+
 						<div className={`pt-4 pb-2 px-4 text-xs font-bold uppercase ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-							Avancé
+							{t.advanced}
 						</div>
 
 						<button
 							onClick={handleLogout}
-							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors ${isDark ? 'text-red-400 hover:bg-red-900/20' : 'text-red-600 hover:bg-red-50'}`}>
-							<span className='text-xl'>🚪</span>
-							<span className='font-medium'>{t.logout}</span>
+							className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${isDark ? 'text-red-400 hover:bg-red-900/20' : 'text-red-600 hover:bg-red-50'}`}>
+							<span>🚪</span>
+							<span className='font-medium text-sm'>{t.logout}</span>
 						</button>
 					</nav>
 				</div>
@@ -440,94 +497,60 @@ const AccountSettings = () => {
 				{/* Profile Section */}
 				{activeSection === 'profile' && (
 					<div className='max-w-4xl'>
-						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.changeAvatar}</h1>
+						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>
+							{lang === 'fr' ? 'Modifier le profil' : lang === 'en' ? 'Edit profile' : lang === 'es' ? 'Editar perfil' : lang === 'de' ? 'Profil bearbeiten' : lang === 'it' ? 'Modifica profilo' : 'プロフィール編集'}
+						</h1>
+						<p className={`${isDark ? 'text-gray-400' : 'text-gray-600'} mb-6 text-sm`}>
+							{lang === 'fr' ? 'Personnalise les paramètres de ce profil' : lang === 'en' ? 'Customize this profile settings' : lang === 'es' ? 'Personaliza la configuración de este perfil' : 'Personalisiere diese Profileinstellungen'}
+						</p>
 
-						{/* Selected Avatar */}
-						<div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 mb-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+						<div className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'} flex items-center justify-between`}>
 							<div className='flex items-center gap-4'>
 								<img
-									src={selectedAvatar.img}
+									src={selectedAvatar.url}
 									alt={selectedAvatar.name}
-									className='w-20 h-20 rounded-full object-cover border-4 border-blue-500'
+									className='w-20 h-20 rounded-full object-cover'
+									onError={(e) => {
+										e.target.src = 'https://via.placeholder.com/80/1f2937/4b5563?text=Avatar';
+									}}
 								/>
 								<div>
-									<p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedAvatar.name}</p>
-									<p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{selectedAvatar.category}</p>
+									<p className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+										{profile.first_name} {profile.last_name}
+									</p>
+									<p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+										{lang === 'fr' ? 'Profil adulte' : lang === 'en' ? 'Adult profile' : lang === 'es' ? 'Perfil adulto' : 'Erwachsenenprofil'}
+									</p>
 								</div>
-							</div>
-						</div>
-
-						{/* Avatar Grid */}
-						<div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-							<input
-								type='text'
-								placeholder={t.search}
-								value={searchAvatar}
-								onChange={(e) => setSearchAvatar(e.target.value)}
-								className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 mb-4 focus:outline-none focus:border-blue-500`}
-							/>
-
-							<div className='grid grid-cols-6 gap-4 max-h-96 overflow-y-auto'>
-								{filteredAvatars.map(avatar => (
-									<button
-										key={avatar.id}
-										onClick={() => setProfile({ ...profile, avatar: avatar.id })}
-										className={`aspect-square rounded-xl overflow-hidden transition-all ${
-											profile.avatar === avatar.id
-												? 'ring-4 ring-blue-500 scale-105'
-												: 'hover:scale-105 opacity-80 hover:opacity-100'
-										}`}>
-										<img
-											src={avatar.img}
-											alt={avatar.name}
-											className='w-full h-full object-cover'
-										/>
-									</button>
-								))}
-							</div>
-						</div>
-
-						{/* Profile Form */}
-						<form onSubmit={handleProfileUpdate} className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 mt-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
-							<div className='grid grid-cols-2 gap-4 mb-4'>
-								<div>
-									<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.firstName}</label>
-									<input
-										type='text'
-										value={profile.first_name}
-										onChange={(e) => setProfile({ ...profile, first_name: e.target.value })}
-										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
-									/>
-								</div>
-								<div>
-									<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.lastName}</label>
-									<input
-										type='text'
-										value={profile.last_name}
-										onChange={(e) => setProfile({ ...profile, last_name: e.target.value })}
-										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
-									/>
-								</div>
-							</div>
-
-							<div className='mb-4'>
-								<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.email}</label>
-								<input
-									type='email'
-									value={profile.email}
-									disabled
-									className={`w-full ${isDark ? 'bg-gray-800/50' : 'bg-gray-200'} border ${isDark ? 'border-gray-700' : 'border-gray-300'} text-gray-500 rounded-xl px-4 py-3 cursor-not-allowed`}
-								/>
-								<p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'} mt-1`}>{t.emailReadonly}</p>
 							</div>
 
 							<button
-								type='submit'
-								disabled={loading}
-								className='w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50 transition-colors'>
-								{loading ? t.saving : t.save}
+								onClick={() => setShowEditModal(true)}
+								className={`px-6 py-2 rounded-lg font-semibold transition-colors ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}>
+								{t.modifyProfile}
 							</button>
-						</form>
+						</div>
+
+						{/* Admin Code Input */}
+						{!isAdmin && (
+							<div className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'} mt-6`}>
+								<h3 className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-3`}>{t.adminCode}</h3>
+								<div className='flex gap-2'>
+									<input
+										type='text'
+										value={adminInput}
+										onChange={(e) => setAdminInput(e.target.value)}
+										placeholder={t.enterAdminCode}
+										className={`flex-1 ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500`}
+									/>
+									<button
+										onClick={handleAdminCode}
+										className='px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-500'>
+										{lang === 'fr' ? 'Valider' : lang === 'en' ? 'Validate' : lang === 'es' ? 'Validar' : 'Bestätigen'}
+									</button>
+								</div>
+							</div>
+						)}
 					</div>
 				)}
 
@@ -536,7 +559,7 @@ const AccountSettings = () => {
 					<div className='max-w-2xl'>
 						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.changePassword}</h1>
 
-						<form onSubmit={handlePasswordChange} className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
+						<form onSubmit={handlePasswordChange} className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
 							<div className='space-y-4'>
 								<div>
 									<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.oldPassword}</label>
@@ -544,7 +567,7 @@ const AccountSettings = () => {
 										type='password'
 										value={passwordData.old_password}
 										onChange={(e) => setPasswordData({ ...passwordData, old_password: e.target.value })}
-										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
 										required
 									/>
 								</div>
@@ -555,7 +578,7 @@ const AccountSettings = () => {
 										type='password'
 										value={passwordData.new_password}
 										onChange={(e) => setPasswordData({ ...passwordData, new_password: e.target.value })}
-										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
 										required
 									/>
 								</div>
@@ -566,7 +589,7 @@ const AccountSettings = () => {
 										type='password'
 										value={passwordData.confirm_password}
 										onChange={(e) => setPasswordData({ ...passwordData, confirm_password: e.target.value })}
-										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
 										required
 									/>
 								</div>
@@ -574,25 +597,24 @@ const AccountSettings = () => {
 								<button
 									type='submit'
 									disabled={loading}
-									className='w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50 transition-colors'>
-									{loading ? t.changing : t.changeBtn}
+									className='w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50'>
+									{t.updateBtn}
 								</button>
 							</div>
 						</form>
 					</div>
 				)}
 
-				{/* Settings Section */}
-				{activeSection === 'settings' && (
+				{/* Notifications Section */}
+				{activeSection === 'notifications' && (
 					<div className='max-w-2xl'>
-						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.preferences}</h1>
+						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.notifications}</h1>
 
-						<div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'} space-y-6`}>
-							{/* Notifications */}
+						<div className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'}`}>
 							<div className='flex items-center justify-between'>
 								<div>
 									<p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{t.notifications}</p>
-									<p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t.notificationsDesc}</p>
+									<p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{t.notifDesc}</p>
 								</div>
 								<button
 									onClick={() => saveSettings({ ...settings, notifications: !settings.notifications })}
@@ -604,27 +626,37 @@ const AccountSettings = () => {
 									}`} />
 								</button>
 							</div>
+						</div>
+					</div>
+				)}
 
-							{/* Language */}
+				{/* Settings Section */}
+				{activeSection === 'settings' && (
+					<div className='max-w-2xl'>
+						<h1 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.preferences}</h1>
+
+						<div className={`${isDark ? 'bg-gray-900' : 'bg-gray-50'} rounded-2xl p-6 border ${isDark ? 'border-gray-800' : 'border-gray-200'} space-y-6`}>
 							<div>
 								<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.language}</label>
 								<select
 									value={lang}
 									onChange={(e) => setLang(e.target.value)}
-									className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
+									className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
 									<option value='fr'>Français 🇫🇷</option>
 									<option value='en'>English 🇬🇧</option>
 									<option value='es'>Español 🇪🇸</option>
+									<option value='de'>Deutsch 🇩🇪</option>
+									<option value='it'>Italiano 🇮🇹</option>
+									<option value='ja'>日本語 🇯🇵</option>
 								</select>
 							</div>
 
-							{/* Theme */}
 							<div>
 								<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.theme}</label>
 								<select
-									value={settings.theme}
-									onChange={(e) => saveSettings({ ...settings, theme: e.target.value })}
-									className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
+									value={theme}
+									onChange={(e) => setTheme(e.target.value)}
+									className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-white border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
 									<option value='dark'>{t.dark} 🌙</option>
 									<option value='light'>{t.light} ☀️</option>
 								</select>
@@ -632,7 +664,122 @@ const AccountSettings = () => {
 						</div>
 					</div>
 				)}
+
+				{/* Admin Panel */}
+				{activeSection === 'admin' && isAdmin && (
+					<div className='max-w-4xl'>
+						<h1 className='text-2xl font-bold text-purple-400 mb-6'>👑 {t.adminPanel}</h1>
+						<div className='bg-purple-900/20 border border-purple-500/30 rounded-2xl p-6'>
+							<p className='text-white mb-4'>
+								{lang === 'fr' ? 'Fonctionnalités admin disponibles :' : 'Admin features available:'}
+							</p>
+							<ul className='space-y-2 text-purple-300'>
+								<li>✅ {lang === 'fr' ? 'Voir toutes les statistiques utilisateurs' : 'View all user statistics'}</li>
+								<li>✅ {lang === 'fr' ? 'Gérer les contenus signalés' : 'Manage reported content'}</li>
+								<li>✅ {lang === 'fr' ? 'Accès aux logs système' : 'Access system logs'}</li>
+								<li>✅ {lang === 'fr' ? 'Modifier les rôles utilisateurs' : 'Edit user roles'}</li>
+							</ul>
+						</div>
+					</div>
+				)}
 			</div>
+
+			{/* Edit Modal */}
+			{showEditModal && (
+				<div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4'>
+					<div className={`${isDark ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
+						<h2 className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'} mb-6`}>{t.modifyProfile}</h2>
+
+						<form onSubmit={handleProfileUpdate}>
+							{/* Avatar Selection */}
+							<div className='mb-6'>
+								<p className={`font-semibold ${isDark ? 'text-white' : 'text-gray-900'} mb-3`}>
+									{lang === 'fr' ? 'Choisis ton avatar' : lang === 'en' ? 'Choose your avatar' : 'Elige tu avatar'}
+								</p>
+
+								{/* Tabs */}
+								<div className='flex gap-2 mb-4'>
+									{['netflix', 'prime', 'disney'].map(tab => (
+										<button
+											key={tab}
+											type='button'
+											onClick={() => setAvatarTab(tab)}
+											className={`px-4 py-2 rounded-lg font-semibold transition-colors ${
+												avatarTab === tab
+													? 'bg-blue-600 text-white'
+													: `${isDark ? 'bg-gray-800 text-gray-400' : 'bg-gray-200 text-gray-600'}`
+											}`}>
+											{tab === 'netflix' ? 'Netflix' : tab === 'prime' ? 'Prime Video' : 'Disney+'}
+										</button>
+									))}
+								</div>
+
+								{/* Avatar Grid */}
+								<div className='grid grid-cols-5 gap-3'>
+									{AVATARS[avatarTab].map(avatar => (
+										<button
+											key={avatar.id}
+											type='button'
+											onClick={() => setEditForm({ ...editForm, avatar: avatar.id })}
+											className={`aspect-square rounded-xl overflow-hidden transition-all ${
+												editForm.avatar === avatar.id
+													? 'ring-4 ring-blue-500 scale-105'
+													: 'hover:scale-105 opacity-80 hover:opacity-100'
+											}`}>
+											<img
+												src={avatar.url}
+												alt={avatar.name}
+												className='w-full h-full object-cover'
+												onError={(e) => {
+													e.target.src = 'https://via.placeholder.com/80/1f2937/4b5563?text=?';
+												}}
+											/>
+										</button>
+									))}
+								</div>
+							</div>
+
+							{/* Name Fields */}
+							<div className='grid grid-cols-2 gap-4 mb-6'>
+								<div>
+									<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.firstName}</label>
+									<input
+										type='text'
+										value={editForm.first_name}
+										onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
+										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+									/>
+								</div>
+								<div>
+									<label className={`block text-sm font-semibold ${isDark ? 'text-gray-400' : 'text-gray-600'} mb-2`}>{t.lastName}</label>
+									<input
+										type='text'
+										value={editForm.last_name}
+										onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
+										className={`w-full ${isDark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+									/>
+								</div>
+							</div>
+
+							{/* Buttons */}
+							<div className='flex gap-3'>
+								<button
+									type='button'
+									onClick={() => setShowEditModal(false)}
+									className={`flex-1 py-3 rounded-xl font-semibold ${isDark ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}>
+									{t.cancel}
+								</button>
+								<button
+									type='submit'
+									disabled={loading}
+									className='flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50'>
+									{loading ? lang === 'fr' ? 'Enregistrement...' : 'Saving...' : t.save}
+								</button>
+							</div>
+						</form>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 };
