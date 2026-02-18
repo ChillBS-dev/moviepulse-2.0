@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const AppContext = createContext();
 
@@ -9,11 +8,9 @@ export const AppProvider = ({ children }) => {
 	const [theme, setTheme] = useState(() => {
 		return localStorage.getItem('appTheme') || 'dark';
 	});
-	const navigate = useNavigate();
 
 	useEffect(() => {
 		localStorage.setItem('appTheme', theme);
-		document.body.className = theme === 'dark' ? 'bg-gray-900' : 'bg-white';
 	}, [theme]);
 
 	const login = async (credentials) => {
@@ -59,7 +56,7 @@ export const AppProvider = ({ children }) => {
 		localStorage.removeItem('accessToken');
 		localStorage.removeItem('refreshToken');
 		localStorage.removeItem('isAdmin');
-		navigate('/');
+		// Navigation is handled by the component calling logout
 	};
 
 	return (
