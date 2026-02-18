@@ -8,11 +8,11 @@ import { jwtDecode } from 'jwt-decode';
 import WelcomeScreen from './pages/Welcome';
 import Home from './pages/Home';
 import Trending from './pages/Trending';
-import { AppProvider, useApp } from './Contexts/AppContext';
+import AccountSettings from './pages/AccountSettings';
+import { AppProvider } from './Contexts/AppContext';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MovieDetail from './Components/MovieDetail';
-import DropdownMenu from './Components/DropdownMenu';
 import Favourite from './Components/Favourite';
 import Layout from './Components/Layout';
 
@@ -73,7 +73,7 @@ function App() {
 						element={
 							<ProtectedRoute>
 								<Layout>
-									<DropdownMenu username={username} />
+									<AccountSettings />
 								</Layout>
 							</ProtectedRoute>
 						}
