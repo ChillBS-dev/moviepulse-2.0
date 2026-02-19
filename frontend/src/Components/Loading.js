@@ -1,37 +1,22 @@
-import React from 'react'
+import React from 'react';
+import { useApp } from '../Contexts/AppContext';
 
+const Loading = () => {
+	const { theme } = useApp();
 
-const Card = () => {
-    return (
-        <div class="min-h-screen w-[100%]">
-            <div className='w-72'>
-                <div className="max-w-sm rounded overflow-hidden shadow-lg animate-pulse">
-                <div className="h-64 bg-gray-300"></div>
-                <div className="px-6 py-4">
-                    <div className="h-6 bg-gray-300 mb-2"></div>
-                    <div className="h-4 bg-gray-300 w-2/3"></div>
-                    {/* <div className="h-4 bg-gray-300 mt-2 mb-2"></div> */}
-                </div>
-                <div className="px-6 pt-4 pb-2">
-                    <div className="h-4 bg-gray-300 w-1/4 mb-2"></div>
-                    <div className="h-4 bg-gray-300 w-1/2"></div>
-                </div>
-                </div>
-            </div>
-        </div>
-    )
-}
-function Loading() {
-  return (
-    <div className='md:grid grid-cols-3 gap-0 mx-8'>
-        {/* ONE */}
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-        <Card />
-    </div>
-  )
-}
+	return (
+		<div className='flex items-center justify-center py-20'>
+			<div className='text-center'>
+				<div className='relative w-20 h-20 mx-auto mb-4'>
+					<div className='absolute inset-0 border-4 border-blue-500/20 rounded-full animate-ping' />
+					<div className='absolute inset-2 border-4 border-blue-500 border-t-transparent rounded-full animate-spin' />
+				</div>
+				<p className={`text-lg font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>
+					Chargement...
+				</p>
+			</div>
+		</div>
+	);
+};
 
-export default Loading
+export default Loading;
