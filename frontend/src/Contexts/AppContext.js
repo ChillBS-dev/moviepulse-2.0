@@ -56,7 +56,6 @@ export const AppProvider = ({ children }) => {
 		localStorage.removeItem('accessToken');
 		localStorage.removeItem('refreshToken');
 		localStorage.removeItem('isAdmin');
-		// Navigation is handled by the component calling logout
 	};
 
 	return (
