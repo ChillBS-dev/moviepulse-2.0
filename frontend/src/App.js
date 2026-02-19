@@ -1,9 +1,4 @@
-import {
-	BrowserRouter as Router,
-	Routes,
-	Route,
-	Navigate,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import WelcomeScreen from './pages/Welcome';
 import Home from './pages/Home';
@@ -16,7 +11,6 @@ import MovieDetail from './Components/MovieDetail';
 import Favourite from './Components/Favourite';
 import Layout from './Components/Layout';
 
-// ProtectedRoute: Only for routes that MUST have authentication
 const ProtectedRoute = ({ children }) => {
 	const accessToken = localStorage.getItem('accessToken');
 	return accessToken ? children : <Navigate to='/' />;
@@ -39,53 +33,13 @@ function App() {
 			<Router>
 				<ToastContainer position='top-right' autoClose={3000} />
 				<Routes>
-					{/* Welcome page - no sidebar */}
 					<Route path='/' element={<WelcomeScreen />} />
-
-					{/* All other pages - with sidebar */}
-					<Route
-						path='/home'
-						element={
-							<Layout>
-								<Home />
-							</Layout>
-						}
-					/>
-					<Route
-						path='/trending'
-						element={
-							<Layout>
-								<Trending />
-							</Layout>
-						}
-					/>
-					<Route
-						path='/movie/:id'
-						element={
-							<Layout>
-								<MovieDetail />
-							</Layout>
-						}
-					/>
+					<Route path='/home' element={<Layout><Home /></Layout>} />
+					<Route path='/trending' element={<Layout><Trending /></Layout>} />
+					<Route path='/movie/:id' element={<Layout><MovieDetail /></Layout>} />
 					<Route path='/logout' element={<Navigate to='/' />} />
-					<Route
-						path='/account'
-						element={
-							<ProtectedRoute>
-								<Layout>
-									<AccountSettings />
-								</Layout>
-							</ProtectedRoute>
-						}
-					/>
-					<Route
-						path='/favorites'
-						element={
-							<Layout>
-								<Favourite />
-							</Layout>
-						}
-					/>
+					<Route path='/account' element={<ProtectedRoute><Layout><AccountSettings /></Layout></ProtectedRoute>} />
+					<Route path='/favorites' element={<Layout><Favourite /></Layout>} />
 				</Routes>
 			</Router>
 		</AppProvider>
