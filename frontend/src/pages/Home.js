@@ -1,22 +1,19 @@
-import TopBar from '../Components/TopBar';
+import React, { useEffect } from 'react';
 import Catalogue from '../Components/Catalogue';
 import { useApp } from '../Contexts/AppContext';
-import Header from '../Components/Header';
 
-function Home() {
-	const { user } = useApp();
+const Home = () => {
+	const { theme } = useApp();
+
+	useEffect(() => {
+		document.body.className = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
+	}, [theme]);
 
 	return (
-		<div className='md:flex flex-row min-h-screen bg-gray-900'>
-			<div className={`${user ? 'hidden md:flex' : 'hidden'}`}>
-			</div>
-			<div
-				className={`${user ? 'md:ml-56 basis-11/12' : 'w-full'} bg-gray-900`}>
-				<Header />
-				<Catalogue />
-			</div>
+		<div className={`min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
+			<Catalogue />
 		</div>
 	);
-}
+};
 
 export default Home;
