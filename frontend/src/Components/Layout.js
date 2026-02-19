@@ -1,13 +1,9 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import Sidebar from './Sidebar';
 import { useApp } from '../Contexts/AppContext';
 
 const Layout = ({ children }) => {
 	const { theme } = useApp();
-
-	useEffect(() => {
-		document.body.className = theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100';
-	}, [theme]);
 
 	return (
 		<div className={`flex min-h-screen ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
