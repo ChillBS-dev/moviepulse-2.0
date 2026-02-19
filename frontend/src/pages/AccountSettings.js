@@ -35,23 +35,23 @@ const ALL_AVATARS = [...AVATARS.netflix, ...AVATARS.prime, ...AVATARS.disney];
 
 const TRANSLATIONS = {
 	fr: {
-		back: 'Retour aux profils',
+		back: '← Retour',
 		editProfile: 'Modifier le profil',
-		editProfileDesc: 'Personnalise les paramètres de ce profil',
+		editProfileDesc: 'Personnalise ton expérience MoviePulse',
 		adultProfile: 'Profil adulte',
-		modifyBtn: 'Modifier le profil',
+		modifyBtn: 'Modifier',
 		chooseAvatar: 'Choisis ton avatar',
 		pseudo: 'Pseudo',
 		save: 'Enregistrer',
 		cancel: 'Annuler',
-		updatePassword: 'Mettre à jour le mot de passe',
+		updatePassword: 'Mot de passe',
 		modifyPassword: 'Modifier ton mot de passe',
 		currentPassword: 'Mot de passe actuel',
 		newPassword: 'Nouveau mot de passe',
-		confirmPassword: 'Confirmer le mot de passe',
+		confirmPassword: 'Confirmer',
 		update: 'Mettre à jour',
-		readingPreferences: 'Préférences de lecture',
-		configureOptions: 'Configure tes options de lecture',
+		readingPreferences: 'Lecture',
+		configureOptions: 'Configure tes options',
 		notifications: 'Notifications',
 		receiveNotif: 'Recevoir des notifications',
 		language: 'Langue',
@@ -59,29 +59,29 @@ const TRANSLATIONS = {
 		dark: 'Sombre',
 		light: 'Clair',
 		adminCode: 'Code Admin',
-		enterCode: 'Entrer le code administrateur',
+		enterCode: 'Code administrateur',
 		validate: 'Valider',
 		adminPanel: 'Panneau Admin',
 		logout: 'Déconnexion',
 	},
 	en: {
-		back: 'Back to profiles',
+		back: '← Back',
 		editProfile: 'Edit profile',
-		editProfileDesc: 'Customize this profile settings',
+		editProfileDesc: 'Customize your MoviePulse experience',
 		adultProfile: 'Adult profile',
-		modifyBtn: 'Edit profile',
+		modifyBtn: 'Edit',
 		chooseAvatar: 'Choose your avatar',
 		pseudo: 'Username',
 		save: 'Save',
 		cancel: 'Cancel',
-		updatePassword: 'Update password',
+		updatePassword: 'Password',
 		modifyPassword: 'Change your password',
 		currentPassword: 'Current password',
 		newPassword: 'New password',
-		confirmPassword: 'Confirm password',
+		confirmPassword: 'Confirm',
 		update: 'Update',
-		readingPreferences: 'Reading preferences',
-		configureOptions: 'Configure your reading options',
+		readingPreferences: 'Reading',
+		configureOptions: 'Configure options',
 		notifications: 'Notifications',
 		receiveNotif: 'Receive notifications',
 		language: 'Language',
@@ -89,29 +89,29 @@ const TRANSLATIONS = {
 		dark: 'Dark',
 		light: 'Light',
 		adminCode: 'Admin Code',
-		enterCode: 'Enter admin code',
+		enterCode: 'Admin code',
 		validate: 'Validate',
 		adminPanel: 'Admin Panel',
 		logout: 'Logout',
 	},
 	es: {
-		back: 'Volver a perfiles',
+		back: '← Volver',
 		editProfile: 'Editar perfil',
-		editProfileDesc: 'Personaliza la configuración de este perfil',
+		editProfileDesc: 'Personaliza tu experiencia MoviePulse',
 		adultProfile: 'Perfil adulto',
-		modifyBtn: 'Editar perfil',
+		modifyBtn: 'Editar',
 		chooseAvatar: 'Elige tu avatar',
-		pseudo: 'Nombre de usuario',
+		pseudo: 'Usuario',
 		save: 'Guardar',
 		cancel: 'Cancelar',
-		updatePassword: 'Actualizar contraseña',
+		updatePassword: 'Contraseña',
 		modifyPassword: 'Cambia tu contraseña',
 		currentPassword: 'Contraseña actual',
 		newPassword: 'Nueva contraseña',
-		confirmPassword: 'Confirmar contraseña',
+		confirmPassword: 'Confirmar',
 		update: 'Actualizar',
-		readingPreferences: 'Preferencias de lectura',
-		configureOptions: 'Configura tus opciones de lectura',
+		readingPreferences: 'Lectura',
+		configureOptions: 'Configura opciones',
 		notifications: 'Notificaciones',
 		receiveNotif: 'Recibir notificaciones',
 		language: 'Idioma',
@@ -119,7 +119,7 @@ const TRANSLATIONS = {
 		dark: 'Oscuro',
 		light: 'Claro',
 		adminCode: 'Código Admin',
-		enterCode: 'Ingrese código admin',
+		enterCode: 'Código admin',
 		validate: 'Validar',
 		adminPanel: 'Panel Admin',
 		logout: 'Cerrar sesión',
@@ -139,23 +139,8 @@ const AccountSettings = () => {
 	const [isAdmin, setIsAdmin] = useState(() => localStorage.getItem('isAdmin') === 'true');
 	const [adminInput, setAdminInput] = useState('');
 
-	const [profile, setProfile] = useState({
-		pseudo: '',
-		email: '',
-		avatar: 1,
-	});
-
-	const [editForm, setEditForm] = useState({
-		pseudo: '',
-		avatar: 1,
-	});
-
-	const [passwordData, setPasswordData] = useState({
-		old_password: '',
-		new_password: '',
-		confirm_password: '',
-	});
-
+	const [profile, setProfile] = useState({ pseudo: '', email: '', avatar: 1 });
+	const [editForm, setEditForm] = useState({ pseudo: '', avatar: 1 });
 	const [settings, setSettings] = useState({ notifications: true });
 
 	useEffect(() => {
@@ -183,15 +168,8 @@ const AccountSettings = () => {
 			if (res.ok) {
 				const data = await res.json();
 				const pseudo = data.first_name || data.email?.split('@')[0] || 'Utilisateur';
-				setProfile({
-					pseudo,
-					email: data.email || '',
-					avatar: data.avatar || 1,
-				});
-				setEditForm({
-					pseudo,
-					avatar: data.avatar || 1,
-				});
+				setProfile({ pseudo, email: data.email || '', avatar: data.avatar || 1 });
+				setEditForm({ pseudo, avatar: data.avatar || 1 });
 			}
 		} catch (err) {
 			console.error('Error:', err);
@@ -210,7 +188,7 @@ const AccountSettings = () => {
 	const saveSettings = (newSettings) => {
 		setSettings(newSettings);
 		localStorage.setItem('userSettings', JSON.stringify(newSettings));
-		toast.success('Paramètres sauvegardés');
+		toast.success('✅ Paramètres sauvegardés');
 	};
 
 	const handleProfileUpdate = async (e) => {
@@ -234,55 +212,12 @@ const AccountSettings = () => {
 			if (res.ok) {
 				setProfile({ ...profile, ...editForm });
 				setShowEditModal(false);
-				toast.success('Profil mis à jour !');
+				toast.success('✅ Profil mis à jour !');
 			} else {
-				toast.error('Erreur');
+				toast.error('❌ Erreur');
 			}
 		} catch (err) {
-			toast.error('Erreur de connexion');
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const handlePasswordChange = async (e) => {
-		e.preventDefault();
-
-		if (passwordData.new_password !== passwordData.confirm_password) {
-			toast.error('Les mots de passe ne correspondent pas');
-			return;
-		}
-
-		if (passwordData.new_password.length < 8) {
-			toast.error('Le mot de passe doit contenir au moins 8 caractères');
-			return;
-		}
-
-		setLoading(true);
-
-		try {
-			const token = localStorage.getItem('accessToken');
-			const res = await fetch(`${API_BASE_URL}/change-password/`, {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-				body: JSON.stringify({
-					old_password: passwordData.old_password,
-					new_password: passwordData.new_password,
-				}),
-			});
-
-			if (res.ok) {
-				toast.success('Mot de passe changé !');
-				setPasswordData({ old_password: '', new_password: '', confirm_password: '' });
-			} else {
-				const data = await res.json();
-				toast.error(data.error || 'Erreur');
-			}
-		} catch (err) {
-			toast.error('Erreur');
+			toast.error('❌ Erreur de connexion');
 		} finally {
 			setLoading(false);
 		}
@@ -295,7 +230,7 @@ const AccountSettings = () => {
 			toast.success('🎉 Accès Admin activé !');
 			setAdminInput('');
 		} else {
-			toast.error('Code incorrect');
+			toast.error('❌ Code incorrect');
 		}
 	};
 
@@ -307,100 +242,103 @@ const AccountSettings = () => {
 	const selectedAvatar = ALL_AVATARS.find(a => a.id === profile.avatar) || ALL_AVATARS[0];
 
 	return (
-		<div className={`min-h-screen ${theme === 'dark' ? 'bg-black' : 'bg-gray-100'} p-8`}>
-			<div className='max-w-7xl mx-auto'>
+		<div className={`min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900' : 'bg-gradient-to-br from-gray-100 via-blue-100 to-purple-100'} p-8 relative overflow-hidden`}>
+			{/* Animated background */}
+			<div className='absolute inset-0 overflow-hidden pointer-events-none'>
+				<div className='absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse' />
+				<div className='absolute top-1/3 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl animate-pulse' style={{ animationDelay: '1s' }} />
+			</div>
+
+			<div className='max-w-7xl mx-auto relative z-10'>
 				{/* Header */}
-				<Link to='/home' className={`inline-flex items-center gap-2 mb-6 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
-					<span>←</span> <span>{t.back}</span>
+				<Link to='/home' className={`inline-flex items-center gap-2 mb-6 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-700 hover:text-gray-900'} transition-colors`}>
+					{t.back}
 				</Link>
 
-				<h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'} mb-2`}>{t.editProfile}</h1>
+				<h1 className={`text-4xl font-black mb-2 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.editProfile}</h1>
 				<p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-8`}>{t.editProfileDesc}</p>
 
 				{/* Profile Card */}
-				<div className={`${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl p-6 border mb-6`}>
+				<div className={`${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-white border-gray-200'} backdrop-blur-xl rounded-3xl p-6 border mb-6 shadow-2xl`}>
 					<div className='flex items-center justify-between'>
 						<div className='flex items-center gap-4'>
-							<img
-								src={selectedAvatar.url}
-								alt={profile.pseudo}
-								className='w-20 h-20 rounded-full object-cover'
-								onError={(e) => { e.target.src = 'https://via.placeholder.com/80/1f2937/4b5563?text=Avatar'; }}
-							/>
+							<div className='relative'>
+								<img
+									src={selectedAvatar.url}
+									alt={profile.pseudo}
+									className='w-20 h-20 rounded-full object-cover ring-4 ring-blue-500/50'
+									onError={(e) => { e.target.src = 'https://via.placeholder.com/80/1f2937/4b5563?text=Avatar'; }}
+								/>
+								<div className='absolute inset-0 rounded-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 animate-pulse' />
+							</div>
 							<div>
-								<p className={`font-bold text-lg ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile.pseudo}</p>
-								<p className={`text-sm ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>{t.adultProfile}</p>
+								<p className={`font-bold text-xl ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{profile.pseudo}</p>
+								<p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.adultProfile}</p>
 							</div>
 						</div>
 
 						<button
 							onClick={() => setShowEditModal(true)}
-							className={`px-6 py-2 rounded-lg font-semibold ${theme === 'dark' ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}>
+							className='px-6 py-3 rounded-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:shadow-lg hover:shadow-purple-500/50 transition-all transform hover:scale-105'>
 							{t.modifyBtn}
 						</button>
 					</div>
 				</div>
 
-				{/* Grid Layout - Cinepulse Style */}
+				{/* Grid Layout */}
 				<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6'>
 					{/* Password Card */}
-					<div className={`${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl p-6 border`}>
+					<div className={`${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-white border-gray-200'} backdrop-blur-xl rounded-3xl p-6 border shadow-xl hover:shadow-2xl transition-all hover:scale-105 cursor-pointer`}>
 						<div className='flex items-start gap-4'>
-							<div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-								<span className='text-2xl'>🔒</span>
+							<div className='w-14 h-14 rounded-2xl bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center text-3xl shadow-lg'>
+								🔒
 							</div>
 							<div className='flex-1'>
-								<h3 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.updatePassword}</h3>
+								<h3 className={`font-bold text-lg mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.updatePassword}</h3>
 								<p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.modifyPassword}</p>
 							</div>
-							<button className={`${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
-								→
-							</button>
 						</div>
 					</div>
 
 					{/* Reading Preferences */}
-					<div className={`${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl p-6 border`}>
+					<div className={`${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-white border-gray-200'} backdrop-blur-xl rounded-3xl p-6 border shadow-xl hover:shadow-2xl transition-all hover:scale-105 cursor-pointer`}>
 						<div className='flex items-start gap-4'>
-							<div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'}`}>
-								<span className='text-2xl'>▶️</span>
+							<div className='w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-3xl shadow-lg'>
+								▶️
 							</div>
 							<div className='flex-1'>
-								<h3 className={`font-bold mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.readingPreferences}</h3>
+								<h3 className={`font-bold text-lg mb-1 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.readingPreferences}</h3>
 								<p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.configureOptions}</p>
 							</div>
-							<button className={`${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
-								→
-							</button>
 						</div>
 					</div>
 				</div>
 
-				{/* Settings Cards */}
-				<div className={`${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl p-6 border mb-6`}>
-					<h3 className={`font-bold text-lg mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>Paramètres</h3>
+				{/* Settings Card */}
+				<div className={`${theme === 'dark' ? 'bg-white/10 border-white/20' : 'bg-white border-gray-200'} backdrop-blur-xl rounded-3xl p-6 border shadow-2xl mb-6`}>
+					<h3 className={`font-bold text-xl mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>⚙️ Paramètres</h3>
 
-					<div className='space-y-4'>
+					<div className='space-y-6'>
 						{/* Notifications */}
 						<div className='flex items-center justify-between'>
 							<div>
-								<p className={`font-semibold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.notifications}</p>
+								<p className={`font-bold ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.notifications}</p>
 								<p className={`text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.receiveNotif}</p>
 							</div>
 							<button
 								onClick={() => saveSettings({ ...settings, notifications: !settings.notifications })}
-								className={`relative w-14 h-7 rounded-full ${settings.notifications ? 'bg-blue-600' : `${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'}`}`}>
-								<div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-transform ${settings.notifications ? 'translate-x-7' : 'translate-x-1'}`} />
+								className={`relative w-16 h-8 rounded-full transition-all ${settings.notifications ? 'bg-gradient-to-r from-blue-500 to-purple-500' : `${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-300'}`}`}>
+								<div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-lg transition-transform ${settings.notifications ? 'translate-x-8' : 'translate-x-1'}`} />
 							</button>
 						</div>
 
 						{/* Language */}
 						<div>
-							<label className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.language}</label>
+							<label className={`block text-sm font-bold mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t.language}</label>
 							<select
 								value={lang}
 								onChange={(e) => setLang(e.target.value)}
-								className={`w-full ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
+								className={`w-full ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all`}>
 								<option value='fr'>Français 🇫🇷</option>
 								<option value='en'>English 🇬🇧</option>
 								<option value='es'>Español 🇪🇸</option>
@@ -409,11 +347,11 @@ const AccountSettings = () => {
 
 						{/* Theme */}
 						<div>
-							<label className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.theme}</label>
+							<label className={`block text-sm font-bold mb-3 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t.theme}</label>
 							<select
 								value={theme}
 								onChange={(e) => setTheme(e.target.value)}
-								className={`w-full ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}>
+								className={`w-full ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all`}>
 								<option value='dark'>{t.dark} 🌙</option>
 								<option value='light'>{t.light} ☀️</option>
 							</select>
@@ -423,19 +361,19 @@ const AccountSettings = () => {
 
 				{/* Admin Code */}
 				{!isAdmin && (
-					<div className={`${theme === 'dark' ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'} rounded-2xl p-6 border mb-6`}>
-						<h3 className={`font-bold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.adminCode}</h3>
+					<div className={`${theme === 'dark' ? 'bg-purple-500/10 border-purple-500/30' : 'bg-purple-100 border-purple-300'} backdrop-blur-xl rounded-3xl p-6 border shadow-xl mb-6`}>
+						<h3 className={`font-bold mb-3 text-purple-400`}>👑 {t.adminCode}</h3>
 						<div className='flex gap-2'>
 							<input
 								type='text'
 								value={adminInput}
 								onChange={(e) => setAdminInput(e.target.value)}
 								placeholder={t.enterCode}
-								className={`flex-1 ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500`}
+								className={`flex-1 ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-white border-purple-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50`}
 							/>
 							<button
 								onClick={handleAdminCode}
-								className='px-6 py-3 bg-purple-600 text-white rounded-xl font-semibold hover:bg-purple-500'>
+								className='px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/50 transition-all'>
 								{t.validate}
 							</button>
 						</div>
@@ -444,28 +382,28 @@ const AccountSettings = () => {
 
 				{/* Admin Panel */}
 				{isAdmin && (
-					<div className='bg-purple-900/20 border border-purple-500/30 rounded-2xl p-6 mb-6'>
-						<h3 className='text-purple-400 font-bold text-lg mb-3'>👑 {t.adminPanel}</h3>
-						<p className='text-purple-300 text-sm'>Fonctionnalités administrateur activées</p>
+					<div className='bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-xl border border-purple-500/30 rounded-3xl p-6 mb-6 shadow-2xl'>
+						<h3 className='text-purple-300 font-bold text-xl mb-3'>👑 {t.adminPanel}</h3>
+						<p className='text-purple-200 text-sm'>Fonctionnalités administrateur activées</p>
 					</div>
 				)}
 
 				{/* Logout */}
 				<button
 					onClick={handleLogout}
-					className={`w-full ${theme === 'dark' ? 'bg-red-600 hover:bg-red-500' : 'bg-red-600 hover:bg-red-500'} text-white py-3 rounded-xl font-semibold`}>
+					className='w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-4 rounded-xl font-bold hover:shadow-2xl hover:shadow-red-500/50 transition-all transform hover:scale-105'>
 					🚪 {t.logout}
 				</button>
 			</div>
 
 			{/* Edit Modal */}
 			{showEditModal && (
-				<div className='fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4'>
-					<div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto`}>
-						<h2 className={`text-2xl font-bold mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.modifyBtn}</h2>
+				<div className='fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in'>
+					<div className={`${theme === 'dark' ? 'bg-gray-900' : 'bg-white'} rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border ${theme === 'dark' ? 'border-white/20' : 'border-gray-200'}`}>
+						<h2 className={`text-3xl font-black mb-6 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.modifyBtn}</h2>
 
 						<form onSubmit={handleProfileUpdate}>
-							<p className={`font-semibold mb-3 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.chooseAvatar}</p>
+							<p className={`font-bold mb-4 ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.chooseAvatar}</p>
 
 							<div className='flex gap-2 mb-4'>
 								{['netflix', 'prime', 'disney'].map(tab => (
@@ -473,7 +411,7 @@ const AccountSettings = () => {
 										key={tab}
 										type='button'
 										onClick={() => setAvatarTab(tab)}
-										className={`px-4 py-2 rounded-lg font-semibold ${avatarTab === tab ? 'bg-blue-600 text-white' : `${theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-200 text-gray-600'}`}`}>
+										className={`px-4 py-2 rounded-xl font-bold transition-all ${avatarTab === tab ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white scale-105' : `${theme === 'dark' ? 'bg-gray-800 text-gray-400' : 'bg-gray-200 text-gray-600'}`}`}>
 										{tab === 'netflix' ? 'Netflix' : tab === 'prime' ? 'Prime' : 'Disney+'}
 									</button>
 								))}
@@ -485,19 +423,19 @@ const AccountSettings = () => {
 										key={avatar.id}
 										type='button'
 										onClick={() => setEditForm({ ...editForm, avatar: avatar.id })}
-										className={`aspect-square rounded-xl overflow-hidden ${editForm.avatar === avatar.id ? 'ring-4 ring-blue-500 scale-105' : 'hover:scale-105 opacity-80 hover:opacity-100'}`}>
+										className={`aspect-square rounded-xl overflow-hidden transition-all ${editForm.avatar === avatar.id ? 'ring-4 ring-blue-500 scale-110' : 'hover:scale-105 opacity-80 hover:opacity-100'}`}>
 										<img src={avatar.url} alt={avatar.name} className='w-full h-full object-cover' onError={(e) => { e.target.src = 'https://via.placeholder.com/80'; }} />
 									</button>
 								))}
 							</div>
 
 							<div className='mb-6'>
-								<label className={`block text-sm font-semibold mb-2 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.pseudo}</label>
+								<label className={`block text-sm font-bold mb-2 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{t.pseudo}</label>
 								<input
 									type='text'
 									value={editForm.pseudo}
 									onChange={(e) => setEditForm({ ...editForm, pseudo: e.target.value })}
-									className={`w-full ${theme === 'dark' ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500`}
+									className={`w-full ${theme === 'dark' ? 'bg-white/10 border-white/20 text-white' : 'bg-gray-100 border-gray-300 text-gray-900'} border rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50`}
 								/>
 							</div>
 
@@ -505,13 +443,13 @@ const AccountSettings = () => {
 								<button
 									type='button'
 									onClick={() => setShowEditModal(false)}
-									className={`flex-1 py-3 rounded-xl font-semibold ${theme === 'dark' ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}>
+									className={`flex-1 py-3 rounded-xl font-bold ${theme === 'dark' ? 'bg-gray-800 text-white hover:bg-gray-700' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'} transition-colors`}>
 									{t.cancel}
 								</button>
 								<button
 									type='submit'
 									disabled={loading}
-									className='flex-1 bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50'>
+									className='flex-1 bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 rounded-xl font-bold hover:shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 transition-all'>
 									{loading ? '...' : t.save}
 								</button>
 							</div>
