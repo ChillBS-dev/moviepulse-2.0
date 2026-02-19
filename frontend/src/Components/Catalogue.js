@@ -5,19 +5,34 @@ import Loading from './Loading';
 import { useApp } from '../Contexts/AppContext';
 import useMovie from '../Hooks/useMovie';
 
+const TRANSLATIONS = {
+	fr: { movies: 'Films', series: 'Séries', anime: 'Anime', results: 'résultats', noMovies: 'Aucun résultat trouvé', adjust: 'Essayez une autre recherche', previous: 'Précédent', next: 'Suivant', page: 'Page', of: 'sur' },
+	en: { movies: 'Movies', series: 'Series', anime: 'Anime', results: 'results', noMovies: 'No results found', adjust: 'Try another search', previous: 'Previous', next: 'Next', page: 'Page', of: 'of' },
+	es: { movies: 'Películas', series: 'Series', anime: 'Anime', results: 'resultados', noMovies: 'No se encontraron resultados', adjust: 'Prueba otra búsqueda', previous: 'Anterior', next: 'Siguiente', page: 'Página', of: 'de' },
+};
+
 function Catalogue() {
-	const { setSearchQuery, searchQuery } = useApp();
+	const { setSearchQuery, searchQuery, theme } = useApp();
 	const [currentPage, setCurrentPage] = useState(1);
-	const {
-		movies = [],
-		isLoading,
-		totalPages,
-	} = useMovie(searchQuery, currentPage);
+	const [lang, setLang] = useState('fr');
+	const { movies = [], isLoading, totalPages } = useMovie(searchQuery, currentPage);
 
 	useEffect(() => {
-		console.log('Search Query:', searchQuery);
-		console.log('Current Page:', currentPage);
-	}, [searchQuery, currentPage]);
+		const savedLang = localStorage.getItem('appLanguage') || 'fr';
+		setLang(savedLang);
+		const handleLangChange = () => {
+			const newLang = localStorage.getItem('appLanguage') || 'fr';
+			setLang(newLang);
+		};
+		window.addEventListener('storage', handleLangChange);
+		const interval = setInterval(handleLangChange, 500);
+		return () => {
+			window.removeEventListener('storage', handleLangChange);
+			clearInterval(interval);
+		};
+	}, []);
+
+	const t = TRANSLATIONS[lang] || TRANSLATIONS.fr;
 
 	const handleClick = (val) => {
 		setSearchQuery(val);
@@ -31,52 +46,49 @@ function Catalogue() {
 	};
 
 	return (
-		<div className='min-h-screen px-4 md:px-8 py-8 bg-gray-900'>
-			{/* Category Navigation */}
+		<div className={`min-h-screen px-4 md:px-8 py-8 ${theme === 'dark' ? 'bg-gray-900' : 'bg-gray-100'}`}>
 			<div className='flex justify-start mb-8'>
-				<nav className='bg-gray-800 rounded-xl p-1 shadow-lg'>
+				<nav className={`${theme === 'dark' ? 'bg-gray-800' : 'bg-white'} rounded-xl p-1 shadow-lg`}>
 					<ul className='flex space-x-1'>
 						<li
 							onClick={() => handleClick('Movies')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
 								searchQuery === 'Movies'
 									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
-									: 'text-gray-300 hover:text-white hover:bg-gray-700'
+									: `${theme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
 							}`}>
-							🎬 Films
+							🎬 {t.movies}
 						</li>
 						<li
 							onClick={() => handleClick('Series')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
 								searchQuery === 'Series'
 									? 'bg-blue-600 text-white shadow-lg shadow-blue-600/50'
-									: 'text-gray-300 hover:text-white hover:bg-gray-700'
+									: `${theme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
 							}`}>
-							📺 Séries
+							📺 {t.series}
 						</li>
 						<li
 							onClick={() => handleClick('Anime')}
 							className={`cursor-pointer px-6 py-2.5 rounded-lg font-medium transition-all duration-300 ${
 								searchQuery === 'Anime'
 									? 'bg-pink-600 text-white shadow-lg shadow-pink-600/50'
-									: 'text-gray-300 hover:text-white hover:bg-gray-700'
+									: `${theme === 'dark' ? 'text-gray-300 hover:text-white hover:bg-gray-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'}`
 							}`}>
-							⛩️ Anime
+							⛩️ {t.anime}
 						</li>
 					</ul>
 				</nav>
 			</div>
 
-			{/* Search Bar */}
 			<div className='mb-8'>
 				<Search />
 			</div>
 
-			{/* Section Title */}
 			<div className='mt-10 mb-6 flex items-center gap-3'>
-				<h2 className='text-white font-bold text-3xl md:text-4xl'>{searchQuery}</h2>
+				<h2 className={`font-bold text-3xl md:text-4xl ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{searchQuery}</h2>
 				{!isLoading && movies.length > 0 && (
-					<span className='text-gray-400 text-lg'>({movies.length} résultats)</span>
+					<span className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>({movies.length} {t.results})</span>
 				)}
 			</div>
 
@@ -84,7 +96,6 @@ function Catalogue() {
 				<Loading />
 			) : (
 				<>
-					{/* Movies Grid */}
 					<div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8'>
 						{movies.length ? (
 							movies.map((movie, index) => (
@@ -94,38 +105,37 @@ function Catalogue() {
 							))
 						) : (
 							<div className='col-span-full flex flex-col items-center justify-center py-20'>
-								<svg className='w-24 h-24 text-gray-700 mb-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+								<svg className={`w-24 h-24 mb-4 ${theme === 'dark' ? 'text-gray-700' : 'text-gray-400'}`} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={1.5} d='M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z' />
 								</svg>
-								<p className='text-gray-400 text-lg'>Aucun résultat trouvé</p>
-								<p className='text-gray-500 text-sm mt-2'>Essayez une autre recherche</p>
+								<p className={`text-lg ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.noMovies}</p>
+								<p className={`text-sm mt-2 ${theme === 'dark' ? 'text-gray-500' : 'text-gray-500'}`}>{t.adjust}</p>
 							</div>
 						)}
 					</div>
 
-					{/* Pagination */}
 					{movies.length > 0 && (
 						<div className='flex flex-col sm:flex-row items-center justify-center gap-4 mt-12 mb-8'>
 							<button
 								onClick={() => handlePageChange(currentPage - 1)}
 								disabled={currentPage === 1}
-								className='bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-gray-700 hover:border-gray-600 flex items-center gap-2 shadow-lg'>
+								className={`${theme === 'dark' ? 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700 hover:border-gray-600' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'} px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border flex items-center gap-2 shadow-lg`}>
 								<svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M15 19l-7-7 7-7' />
 								</svg>
-								Précédent
+								{t.previous}
 							</button>
-							<div className='flex items-center gap-2 bg-gray-800 px-6 py-3 rounded-lg border border-gray-700 shadow-lg'>
-								<span className='text-white font-medium'>Page</span>
+							<div className={`flex items-center gap-2 px-6 py-3 rounded-lg border shadow-lg ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-300'}`}>
+								<span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{t.page}</span>
 								<span className='text-blue-400 font-bold text-lg'>{currentPage}</span>
-								<span className='text-gray-400'>sur</span>
-								<span className='text-white font-medium'>{totalPages}</span>
+								<span className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>{t.of}</span>
+								<span className={`font-medium ${theme === 'dark' ? 'text-white' : 'text-gray-900'}`}>{totalPages}</span>
 							</div>
 							<button
 								onClick={() => handlePageChange(currentPage + 1)}
 								disabled={currentPage === totalPages}
-								className='bg-gray-800 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border border-gray-700 hover:border-gray-600 flex items-center gap-2 shadow-lg'>
-								Suivant
+								className={`${theme === 'dark' ? 'bg-gray-800 text-white border-gray-700 hover:bg-gray-700 hover:border-gray-600' : 'bg-white text-gray-900 border-gray-300 hover:bg-gray-100'} px-6 py-3 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 border flex items-center gap-2 shadow-lg`}>
+								{t.next}
 								<svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 									<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M9 5l7 7-7 7' />
 								</svg>
