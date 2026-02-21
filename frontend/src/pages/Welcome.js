@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import welcomeBackground from '../images/welcome-background.jpg';
 import LoginModal from '../Components/LoginModal';
 
@@ -38,12 +37,6 @@ const WelcomeScreen = () => {
 						className='bg-[#0d1f33] text-white px-8 py-4 rounded-xl text-base font-semibold hover:bg-[#162d4a] transition-all duration-300 w-full shadow-2xl hover:shadow-blue-500/20 transform hover:-translate-y-1'>
 						Get Started
 					</button>
-
-					<Link 
-						to={'/home'} 
-						className='block text-gray-300 text-sm hover:text-white transition-colors duration-200 underline-offset-4 hover:underline'>
-						Continue as Guest →
-					</Link>
 				</div>
 			</div>
 
