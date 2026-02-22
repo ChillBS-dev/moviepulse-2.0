@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useApp } from '../Contexts/AppContext';
 
@@ -62,7 +62,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 					return;
 				}
 
-				// Appel au backend
+				// Inscription
 				try {
 					const response = await fetch('https://moviepulse-backend.onrender.com/api/register/', {
 						method: 'POST',
@@ -79,14 +79,26 @@ const LoginModal = ({ isOpen, onClose }) => {
 					});
 
 					const data = await response.json();
-					console.log('Backend response:', response.status, data);
 
 					if (response.ok) {
-						toast.success('✅ Compte créé ! Vous pouvez maintenant vous connecter');
-						setIsLogin(true);
-						setFormData({ email: formData.email, password: '', password2: '', first_name: '', last_name: '' });
+						toast.success('✅ Compte créé !');
+						
+						// Connexion automatique après inscription
+						const loginSuccess = await login({
+							email: formData.email.trim().toLowerCase(),
+							password: formData.password,
+						});
+
+						if (loginSuccess) {
+							toast.success('🎉 Vous êtes connecté !');
+							onClose();
+							navigate('/home');
+						} else {
+							// Si la connexion auto échoue, afficher le formulaire de connexion
+							setIsLogin(true);
+							setFormData({ email: formData.email, password: '', password2: '', first_name: '', last_name: '' });
+						}
 					} else {
-						// Afficher les erreurs spécifiques du backend
 						if (data.email) {
 							toast.error(`❌ Email: ${data.email[0]}`);
 						} else if (data.password) {
@@ -95,11 +107,8 @@ const LoginModal = ({ isOpen, onClose }) => {
 							toast.error(`❌ Confirmation: ${data.password2[0]}`);
 						} else if (data.detail) {
 							toast.error(`❌ ${data.detail}`);
-						} else if (data.error) {
-							toast.error(`❌ ${data.error}`);
 						} else {
 							toast.error('❌ Erreur lors de la création du compte');
-							console.error('Erreur backend:', data);
 						}
 					}
 				} catch (fetchError) {
@@ -120,7 +129,6 @@ const LoginModal = ({ isOpen, onClose }) => {
 	return (
 		<div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
 			<div className='bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-700 animate-scaleIn relative'>
-				{/* Close button */}
 				<button
 					onClick={onClose}
 					className='absolute top-4 right-4 text-gray-400 hover:text-white transition-colors'
@@ -130,15 +138,12 @@ const LoginModal = ({ isOpen, onClose }) => {
 					</svg>
 				</button>
 
-				{/* Tabs */}
 				<div className='flex gap-2 mb-6'>
 					<button
 						type='button'
 						onClick={() => setIsLogin(true)}
 						className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-							isLogin
-								? 'bg-blue-600 text-white'
-								: 'bg-gray-700 text-gray-400 hover:text-white'
+							isLogin ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'
 						}`}>
 						Connexion
 					</button>
@@ -146,15 +151,12 @@ const LoginModal = ({ isOpen, onClose }) => {
 						type='button'
 						onClick={() => setIsLogin(false)}
 						className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-							!isLogin
-								? 'bg-blue-600 text-white'
-								: 'bg-gray-700 text-gray-400 hover:text-white'
+							!isLogin ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'
 						}`}>
 						Inscription
 					</button>
 				</div>
 
-				{/* Form */}
 				<form onSubmit={handleSubmit} className='space-y-4'>
 					{!isLogin && (
 						<>
@@ -247,7 +249,13 @@ const LoginModal = ({ isOpen, onClose }) => {
 
 				{!isLogin && (
 					<p className='text-xs text-gray-500 text-center mt-4'>
-						En vous inscrivant, vous acceptez nos conditions d'utilisation
+						En vous inscrivant, vous acceptez nos{' '}
+						<Link 
+							to='/terms' 
+							onClick={onClose}
+							className='text-blue-400 hover:text-blue-300 underline'>
+							conditions d'utilisation
+						</Link>
 					</p>
 				)}
 			</div>
