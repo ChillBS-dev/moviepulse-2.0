@@ -8,6 +8,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 	const [formData, setFormData] = useState({
 		email: '',
 		password: '',
+		password2: '',
 		first_name: '',
 		last_name: '',
 	});
@@ -55,8 +56,13 @@ const LoginModal = ({ isOpen, onClose }) => {
 					setLoading(false);
 					return;
 				}
+				if (formData.password !== formData.password2) {
+					toast.error('❌ Les mots de passe ne correspondent pas');
+					setLoading(false);
+					return;
+				}
 
-				// Appel direct au backend pour mieux voir les erreurs
+				// Appel au backend
 				try {
 					const response = await fetch('https://moviepulse-backend.onrender.com/api/register/', {
 						method: 'POST',
@@ -68,6 +74,7 @@ const LoginModal = ({ isOpen, onClose }) => {
 							last_name: formData.last_name.trim(),
 							email: formData.email.trim().toLowerCase(),
 							password: formData.password,
+							password2: formData.password2,
 						}),
 					});
 
@@ -77,13 +84,15 @@ const LoginModal = ({ isOpen, onClose }) => {
 					if (response.ok) {
 						toast.success('✅ Compte créé ! Vous pouvez maintenant vous connecter');
 						setIsLogin(true);
-						setFormData({ email: formData.email, password: '', first_name: '', last_name: '' });
+						setFormData({ email: formData.email, password: '', password2: '', first_name: '', last_name: '' });
 					} else {
 						// Afficher les erreurs spécifiques du backend
 						if (data.email) {
 							toast.error(`❌ Email: ${data.email[0]}`);
 						} else if (data.password) {
 							toast.error(`❌ Mot de passe: ${data.password[0]}`);
+						} else if (data.password2) {
+							toast.error(`❌ Confirmation: ${data.password2[0]}`);
 						} else if (data.detail) {
 							toast.error(`❌ ${data.detail}`);
 						} else if (data.error) {
@@ -202,6 +211,21 @@ const LoginModal = ({ isOpen, onClose }) => {
 							minLength={8}
 						/>
 					</div>
+
+					{!isLogin && (
+						<div>
+							<label className='block text-sm font-semibold text-gray-400 mb-2'>Confirmer le mot de passe *</label>
+							<input
+								type='password'
+								value={formData.password2}
+								onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
+								className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
+								placeholder='••••••••'
+								required
+								minLength={8}
+							/>
+						</div>
+					)}
 
 					<button
 						type='submit'
