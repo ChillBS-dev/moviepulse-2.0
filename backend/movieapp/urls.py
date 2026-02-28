@@ -17,4 +17,7 @@ urlpatterns = [
     path("movies/category/", MoviesByCategoryView.as_view(), name="movies-by-category"),
     path("movies/<int:movie_id>/", MovieDetailView.as_view(), name="movie-detail"),
     path("search-movies/", SearchMoviesView.as_view(), name="search-movies"),
+    path('admin/stats/', views.admin_stats, name='admin_stats'),
+    path('movies/paginated/', views.get_movies_paginated, name='movies_paginated'),
+    path('change-password/', views.change_password, name='change_password'),
 ]
