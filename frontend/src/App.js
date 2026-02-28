@@ -42,7 +42,7 @@ function App() {
 				<ToastContainer position='top-right' autoClose={3000} />
 				<Routes>
 					<Route path='/' element={<WelcomeScreen />} />
-	                <Route path='/terms' element={<Terms />} />
+					<Route path='/terms' element={<Terms />} />
 					<Route path='/home' element={<ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>} />
 					<Route path='/trending' element={<ProtectedRoute><Layout><Trending /></Layout></ProtectedRoute>} />
 					<Route path='/movie/:id' element={<ProtectedRoute><Layout><MovieDetail /></Layout></ProtectedRoute>} />
