@@ -327,3 +327,209 @@ def get_profile(request):
         },
         status=status.HTTP_200_OK
     )
+# backend/api/views.py
+# AJOUTEZ CES IMPORTS EN HAUT DU FICHIER
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
+from django.contrib.auth import get_user_model
+from django.db.models import Count
+from django.utils import timezone
+import requests
+from django.conf import settings
+
+User = get_user_model()
+
+# ============================================
+# ADMIN STATS - VRAIES DONNÉES
+# ============================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def admin_stats(request):
+    """
+    Retourne les vraies statistiques admin
+    """
+    try:
+        # Compter les utilisateurs
+        total_users = User.objects.count()
+        
+        # Utilisateurs récents (10 derniers)
+        recent_users = User.objects.order_by('-date_joined')[:10]
+        
+        # Compter les avis (si vous avez un modèle Review)
+        # Si vous n'avez pas de modèle Review, mettez 0
+        try:
+            from .models import Review
+            total_reviews = Review.objects.count()
+        except:
+            total_reviews = 0
+        
+        # Données TMDB (films/séries)
+        tmdb_api_key = settings.TMDB_API_KEY
+        
+        # Compter films populaires
+        movies_response = requests.get(
+            'https://api.themoviedb.org/3/movie/popular',
+            params={'api_key': tmdb_api_key, 'language': 'fr-FR'}
+        )
+        total_movies = movies_response.json().get('total_results', 0)
+        
+        # Compter séries populaires
+        series_response = requests.get(
+            'https://api.themoviedb.org/3/tv/popular',
+            params={'api_key': tmdb_api_key, 'language': 'fr-FR'}
+        )
+        total_series = series_response.json().get('total_results', 0)
+        
+        return Response({
+            'total_users': total_users,
+            'total_movies': total_movies,
+            'total_series': total_series,
+            'total_reviews': total_reviews,
+            'recent_users': [
+                {
+                    'id': user.id,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'date_joined': user.date_joined.strftime('%d/%m/%Y à %H:%M'),
+                }
+                for user in recent_users
+            ]
+        })
+    except Exception as e:
+        return Response({'error': str(e)}, status=500)
+
+
+# ============================================
+# FILMS/SÉRIES AVEC PAGINATION AUGMENTÉE
+# ============================================
+
+@api_view(['GET'])
+def get_movies_paginated(request):
+    """
+    Récupère plus de films (5 pages = 100 films au lieu de 20)
+    """
+    category = request.GET.get('category', 'movie')
+    language = request.GET.get('language', 'fr-FR')
+    
+    # Mapper les langues
+    lang_map = {
+        'fr': 'fr-FR',
+        'en': 'en-US',
+        'es': 'es-ES',
+        'de': 'de-DE',
+        'it': 'it-IT',
+        'ja': 'ja-JP',
+    }
+    tmdb_lang = lang_map.get(language, 'fr-FR')
+    
+    # Déterminer l'endpoint TMDB
+    if category.lower() == 'anime':
+        tmdb_category = 'tv'
+        extra_params = {'with_genres': '16'}  # Animation
+    elif category.lower() == 'series':
+        tmdb_category = 'tv'
+        extra_params = {}
+    else:
+        tmdb_category = 'movie'
+        extra_params = {}
+    
+    # Récupérer 5 pages (100 résultats)
+    all_results = []
+    tmdb_api_key = settings.TMDB_API_KEY
+    
+    for page in range(1, 6):  # Pages 1 à 5
+        response = requests.get(
+            f'https://api.themoviedb.org/3/discover/{tmdb_category}',
+            params={
+                'api_key': tmdb_api_key,
+                'language': tmdb_lang,
+                'page': page,
+                'sort_by': 'popularity.desc',
+                **extra_params
+            }
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = data.get('results', [])
+            
+            # Ajouter media_type pour le frontend
+            for item in results:
+                item['media_type'] = tmdb_category
+                # Titre uniforme
+                if 'name' in item and 'title' not in item:
+                    item['title'] = item['name']
+            
+            all_results.extend(results)
+    
+    return Response({
+        'results': all_results,
+        'total_results': len(all_results),
+        'page': 1,
+        'total_pages': 5
+    })
+
+
+# ============================================
+# CHANGEMENT DE MOT DE PASSE - CORRIGÉ
+# ============================================
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    """
+    Change le mot de passe de l'utilisateur connecté
+    """
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+    
+    # Vérifications
+    if not old_password or not new_password:
+        return Response({'error': 'Tous les champs sont requis'}, status=400)
+    
+    # Vérifier l'ancien mot de passe
+    if not user.check_password(old_password):
+        return Response({'old_password': ['Mot de passe incorrect']}, status=400)
+    
+    # Vérifier la longueur du nouveau mot de passe
+    if len(new_password) < 8:
+        return Response({'new_password': ['Le mot de passe doit contenir au moins 8 caractères']}, status=400)
+    
+    # Changer le mot de passe
+    user.set_password(new_password)
+    user.save()
+    
+    return Response({'message': 'Mot de passe changé avec succès'}, status=200)
+
+
+# ============================================
+# DÉTAILS UTILISATEUR POUR ADMIN
+# ============================================
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def get_all_users(request):
+    """
+    Liste tous les utilisateurs avec détails
+    """
+    users = User.objects.all().order_by('-date_joined')
+    
+    return Response({
+        'users': [
+            {
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'date_joined': user.date_joined.strftime('%d/%m/%Y à %H:%M'),
+                'is_active': user.is_active,
+                'is_staff': user.is_staff,
+            }
+            for user in users
+        ]
+    })
