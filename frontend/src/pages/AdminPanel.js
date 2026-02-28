@@ -1,16 +1,52 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useApp } from '../Contexts/AppContext';
+
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://moviepulse-backend.onrender.com/api';
 
 const AdminPanel = () => {
 	const navigate = useNavigate();
 	const { theme } = useApp();
 	
-	const stats = [
-		{ icon: '👥', label: 'Utilisateurs', value: '1,234', color: 'from-blue-500 to-cyan-500' },
-		{ icon: '🎬', label: 'Films', value: '45,678', color: 'from-purple-500 to-pink-500' },
-		{ icon: '📺', label: 'Séries', value: '12,890', color: 'from-green-500 to-emerald-500' },
-		{ icon: '⭐', label: 'Avis', value: '98,765', color: 'from-yellow-500 to-orange-500' },
+	const [stats, setStats] = useState({
+		total_users: 0,
+		total_movies: 0,
+		total_series: 0,
+		total_reviews: 0,
+		recent_users: []
+	});
+	const [loading, setLoading] = useState(true);
+
+	useEffect(() => {
+		fetchStats();
+	}, []);
+
+	const fetchStats = async () => {
+		try {
+			const token = localStorage.getItem('accessToken');
+			const res = await fetch(`${API_BASE_URL}/admin/stats/`, {
+				headers: { Authorization: `Bearer ${token}` }
+			});
+			
+			if (res.ok) {
+				const data = await res.json();
+				setStats(data);
+			} else if (res.status === 403 || res.status === 401) {
+				// Pas admin ou non connecté
+				navigate('/home');
+			}
+		} catch (err) {
+			console.error('Error fetching stats:', err);
+		} finally {
+			setLoading(false);
+		}
+	};
+	
+	const statsDisplay = [
+		{ icon: '👥', label: 'Utilisateurs', value: stats.total_users, color: 'from-blue-500 to-cyan-500' },
+		{ icon: '🎬', label: 'Films', value: stats.total_movies, color: 'from-purple-500 to-pink-500' },
+		{ icon: '📺', label: 'Séries', value: stats.total_series, color: 'from-green-500 to-emerald-500' },
+		{ icon: '⭐', label: 'Avis', value: stats.total_reviews, color: 'from-yellow-500 to-orange-500' },
 	];
 
 	return (
@@ -38,73 +74,105 @@ const AdminPanel = () => {
 						<p className='text-gray-400'>Gérez votre plateforme MoviePulse</p>
 					</div>
 
-					{/* Stats Grid */}
-					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
-						{stats.map((stat, i) => (
-							<div key={i} className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:scale-105 transition-transform'>
-								<div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-3xl mb-4 shadow-lg`}>
-									{stat.icon}
-								</div>
-								<p className='text-gray-400 text-sm mb-1'>{stat.label}</p>
-								<p className='text-white text-3xl font-black'>{stat.value}</p>
+					{loading ? (
+						<div className='flex items-center justify-center h-64'>
+							<div className='text-white text-xl'>Chargement des statistiques...</div>
+						</div>
+					) : (
+						<>
+							{/* Stats Grid */}
+							<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8'>
+								{statsDisplay.map((stat, i) => (
+									<div key={i} className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 hover:scale-105 transition-transform'>
+										<div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center text-3xl mb-4 shadow-lg`}>
+											{stat.icon}
+										</div>
+										<p className='text-gray-400 text-sm mb-1'>{stat.label}</p>
+										<p className='text-white text-3xl font-black'>{stat.value.toLocaleString()}</p>
+									</div>
+								))}
 							</div>
-						))}
-					</div>
 
-					{/* Management Cards */}
-					<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-						{/* Users Management */}
-						<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
-							<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-								<span>👥</span> Gestion des utilisateurs
-							</h3>
-							<ul className='space-y-2 text-gray-300'>
-								<li>• Voir tous les utilisateurs</li>
-								<li>• Modifier les rôles</li>
-								<li>• Bannir / Débannir</li>
-								<li>• Statistiques détaillées</li>
-							</ul>
-						</div>
+							{/* Recent Users */}
+							<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6 mb-8'>
+								<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+									<span>👥</span> Derniers utilisateurs inscrits
+								</h3>
+								<div className='space-y-3'>
+									{stats.recent_users.length > 0 ? (
+										stats.recent_users.map(user => (
+											<div key={user.id} className='bg-white/5 rounded-xl p-4 flex items-center justify-between'>
+												<div>
+													<p className='text-white font-bold'>{user.first_name} {user.last_name}</p>
+													<p className='text-gray-400 text-sm'>{user.email}</p>
+												</div>
+												<div className='text-right'>
+													<p className='text-gray-300 text-sm'>{user.date_joined}</p>
+												</div>
+											</div>
+										))
+									) : (
+										<p className='text-gray-400'>Aucun utilisateur</p>
+									)}
+								</div>
+							</div>
 
-						{/* Content Management */}
-						<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
-							<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-								<span>🎬</span> Gestion du contenu
-							</h3>
-							<ul className='space-y-2 text-gray-300'>
-								<li>• Ajouter films/séries</li>
-								<li>• Modifier les métadonnées</li>
-								<li>• Modérer les avis</li>
-								<li>• Gérer les catégories</li>
-							</ul>
-						</div>
+							{/* Management Cards */}
+							<div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
+								{/* Users Management */}
+								<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
+									<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+										<span>👥</span> Gestion des utilisateurs
+									</h3>
+									<ul className='space-y-2 text-gray-300'>
+										<li>• {stats.total_users} utilisateurs inscrits</li>
+										<li>• Modifier les rôles</li>
+										<li>• Bannir / Débannir</li>
+										<li>• Statistiques détaillées</li>
+									</ul>
+								</div>
 
-						{/* Reports */}
-						<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
-							<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-								<span>⚠️</span> Signalements
-							</h3>
-							<ul className='space-y-2 text-gray-300'>
-								<li>• Avis signalés</li>
-								<li>• Contenus inappropriés</li>
-								<li>• Spam détecté</li>
-								<li>• Violations des règles</li>
-							</ul>
-						</div>
+								{/* Content Management */}
+								<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
+									<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+										<span>🎬</span> Gestion du contenu
+									</h3>
+									<ul className='space-y-2 text-gray-300'>
+										<li>• {stats.total_movies} films disponibles</li>
+										<li>• {stats.total_series} séries disponibles</li>
+										<li>• Modérer les avis</li>
+										<li>• Gérer les catégories</li>
+									</ul>
+								</div>
 
-						{/* System */}
-						<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
-							<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
-								<span>⚙️</span> Système
-							</h3>
-							<ul className='space-y-2 text-gray-300'>
-								<li>• Logs système</li>
-								<li>• Paramètres globaux</li>
-								<li>• Sauvegardes</li>
-								<li>• Mises à jour</li>
-							</ul>
-						</div>
-					</div>
+								{/* Reports */}
+								<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
+									<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+										<span>⚠️</span> Signalements
+									</h3>
+									<ul className='space-y-2 text-gray-300'>
+										<li>• Avis signalés</li>
+										<li>• Contenus inappropriés</li>
+										<li>• Spam détecté</li>
+										<li>• Violations des règles</li>
+									</ul>
+								</div>
+
+								{/* System */}
+								<div className='bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl p-6'>
+									<h3 className='text-xl font-bold text-white mb-4 flex items-center gap-2'>
+										<span>⚙️</span> Système
+									</h3>
+									<ul className='space-y-2 text-gray-300'>
+										<li>• Logs système</li>
+										<li>• Paramètres globaux</li>
+										<li>• Sauvegardes</li>
+										<li>• Mises à jour</li>
+									</ul>
+								</div>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 		</div>
