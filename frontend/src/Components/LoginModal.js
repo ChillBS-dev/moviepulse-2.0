@@ -16,6 +16,19 @@ const LoginModal = ({ isOpen, onClose }) => {
 	const navigate = useNavigate();
 	const { login } = useApp();
 
+	// Transition fluide entre login et register
+	const switchMode = () => {
+		const modal = document.querySelector('.modal-content');
+		modal.style.transform = 'scale(0.95)';
+		modal.style.opacity = '0.5';
+		
+		setTimeout(() => {
+			setIsLogin(!isLogin);
+			modal.style.transform = 'scale(1)';
+			modal.style.opacity = '1';
+		}, 150);
+	};
+
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		setLoading(true);
@@ -35,7 +48,6 @@ const LoginModal = ({ isOpen, onClose }) => {
 					toast.error('❌ Email ou mot de passe incorrect');
 				}
 			} else {
-				// Validation côté client
 				if (!formData.first_name.trim()) {
 					toast.error('❌ Le prénom est requis');
 					setLoading(false);
@@ -62,13 +74,10 @@ const LoginModal = ({ isOpen, onClose }) => {
 					return;
 				}
 
-				// Inscription
 				try {
 					const response = await fetch('https://moviepulse-backend.onrender.com/api/register/', {
 						method: 'POST',
-						headers: { 
-							'Content-Type': 'application/json',
-						},
+						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({
 							first_name: formData.first_name.trim(),
 							last_name: formData.last_name.trim(),
@@ -83,7 +92,6 @@ const LoginModal = ({ isOpen, onClose }) => {
 					if (response.ok) {
 						toast.success('✅ Compte créé !');
 						
-						// Connexion automatique après inscription
 						const loginSuccess = await login({
 							email: formData.email.trim().toLowerCase(),
 							password: formData.password,
@@ -94,7 +102,6 @@ const LoginModal = ({ isOpen, onClose }) => {
 							onClose();
 							navigate('/home');
 						} else {
-							// Si la connexion auto échoue, afficher le formulaire de connexion
 							setIsLogin(true);
 							setFormData({ email: formData.email, password: '', password2: '', first_name: '', last_name: '' });
 						}
@@ -128,31 +135,24 @@ const LoginModal = ({ isOpen, onClose }) => {
 
 	return (
 		<div className='fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn'>
-			<div className='bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-700 animate-scaleIn relative'>
-				<button
-					onClick={onClose}
-					className='absolute top-4 right-4 text-gray-400 hover:text-white transition-colors'
-					type='button'>
+			<div className='modal-content bg-gray-800 rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-700 animate-scaleIn relative transition-all duration-200'>
+				<button onClick={onClose} className='absolute top-4 right-4 text-gray-400 hover:text-white transition-all duration-200 hover:rotate-90 hover:scale-110' type='button'>
 					<svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
 						<path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M6 18L18 6M6 6l12 12' />
 					</svg>
 				</button>
 
 				<div className='flex gap-2 mb-6'>
-					<button
-						type='button'
-						onClick={() => setIsLogin(true)}
-						className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-							isLogin ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'
-						}`}>
+					<button 
+						type='button' 
+						onClick={switchMode}
+						className={`flex-1 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${isLogin ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' : 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600'}`}>
 						Connexion
 					</button>
-					<button
-						type='button'
-						onClick={() => setIsLogin(false)}
-						className={`flex-1 py-2 rounded-lg font-semibold transition-all ${
-							!isLogin ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-400 hover:text-white'
-						}`}>
+					<button 
+						type='button' 
+						onClick={switchMode}
+						className={`flex-1 py-2 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105 ${!isLogin ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/50' : 'bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600'}`}>
 						Inscription
 					</button>
 				</div>
@@ -160,86 +160,44 @@ const LoginModal = ({ isOpen, onClose }) => {
 				<form onSubmit={handleSubmit} className='space-y-4'>
 					{!isLogin && (
 						<>
-							<div>
+							<div className='animate-slideInLeft'>
 								<label className='block text-sm font-semibold text-gray-400 mb-2'>Prénom *</label>
-								<input
-									type='text'
-									value={formData.first_name}
-									onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-									className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
-									placeholder='Votre prénom'
-									required
-									minLength={2}
-								/>
+								<input type='text' value={formData.first_name} onChange={(e) => setFormData({ ...formData, first_name: e.target.value })} className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200' placeholder='Votre prénom' required minLength={2} />
 							</div>
-							<div>
+							<div className='animate-slideInRight'>
 								<label className='block text-sm font-semibold text-gray-400 mb-2'>Nom *</label>
-								<input
-									type='text'
-									value={formData.last_name}
-									onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-									className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
-									placeholder='Votre nom'
-									required
-									minLength={2}
-								/>
+								<input type='text' value={formData.last_name} onChange={(e) => setFormData({ ...formData, last_name: e.target.value })} className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200' placeholder='Votre nom' required minLength={2} />
 							</div>
 						</>
 					)}
 
-					<div>
+					<div className='animate-fadeIn'>
 						<label className='block text-sm font-semibold text-gray-400 mb-2'>Email *</label>
-						<input
-							type='email'
-							value={formData.email}
-							onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-							className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
-							placeholder='votre@email.com'
-							required
-						/>
+						<input type='email' value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200' placeholder='votre@email.com' required />
 					</div>
 
-					<div>
+					<div className='animate-fadeIn'>
 						<label className='block text-sm font-semibold text-gray-400 mb-2'>
 							Mot de passe * {!isLogin && <span className='text-xs text-gray-500'>(min. 8 caractères)</span>}
 						</label>
-						<input
-							type='password'
-							value={formData.password}
-							onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-							className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
-							placeholder='••••••••'
-							required
-							minLength={8}
-						/>
+						<input type='password' value={formData.password} onChange={(e) => setFormData({ ...formData, password: e.target.value })} className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200' placeholder='••••••••' required minLength={8} />
 					</div>
 
 					{!isLogin && (
-						<div>
+						<div className='animate-slideInUp'>
 							<label className='block text-sm font-semibold text-gray-400 mb-2'>Confirmer le mot de passe *</label>
-							<input
-								type='password'
-								value={formData.password2}
-								onChange={(e) => setFormData({ ...formData, password2: e.target.value })}
-								className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors'
-								placeholder='••••••••'
-								required
-								minLength={8}
-							/>
+							<input type='password' value={formData.password2} onChange={(e) => setFormData({ ...formData, password2: e.target.value })} className='w-full bg-gray-700 border border-gray-600 rounded-xl px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all duration-200' placeholder='••••••••' required minLength={8} />
 						</div>
 					)}
 
-					<button
-						type='submit'
-						disabled={loading}
-						className='w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6'>
+					<button type='submit' disabled={loading} className='w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-blue-500/50 mt-6'>
 						{loading ? (
 							<span className='flex items-center justify-center gap-2'>
 								<svg className='animate-spin h-5 w-5' fill='none' viewBox='0 0 24 24'>
 									<circle className='opacity-25' cx='12' cy='12' r='10' stroke='currentColor' strokeWidth='4' />
 									<path className='opacity-75' fill='currentColor' d='M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z' />
 								</svg>
-								Chargement...
+								{isLogin ? 'Connexion en cours...' : 'Inscription en cours...'}
 							</span>
 						) : (
 							isLogin ? 'Se connecter' : "S'inscrire"
@@ -248,17 +206,61 @@ const LoginModal = ({ isOpen, onClose }) => {
 				</form>
 
 				{!isLogin && (
-					<p className='text-xs text-gray-500 text-center mt-4'>
+					<p className='text-xs text-gray-500 text-center mt-4 animate-fadeIn'>
 						En vous inscrivant, vous acceptez nos{' '}
-						<Link 
-							to='/terms' 
-							onClick={onClose}
-							className='text-blue-400 hover:text-blue-300 underline'>
+						<Link to='/terms' onClick={onClose} className='text-blue-400 hover:text-blue-300 underline transition-colors duration-200'>
 							conditions d'utilisation
 						</Link>
 					</p>
 				)}
 			</div>
+
+			<style jsx>{`
+				@keyframes slideInLeft {
+					from {
+						opacity: 0;
+						transform: translateX(-20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateX(0);
+					}
+				}
+				
+				@keyframes slideInRight {
+					from {
+						opacity: 0;
+						transform: translateX(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateX(0);
+					}
+				}
+				
+				@keyframes slideInUp {
+					from {
+						opacity: 0;
+						transform: translateY(20px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+				
+				.animate-slideInLeft {
+					animation: slideInLeft 0.4s ease-out;
+				}
+				
+				.animate-slideInRight {
+					animation: slideInRight 0.4s ease-out 0.1s both;
+				}
+				
+				.animate-slideInUp {
+					animation: slideInUp 0.4s ease-out 0.2s both;
+				}
+			`}</style>
 		</div>
 	);
 };
