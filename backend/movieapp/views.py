@@ -15,13 +15,16 @@ from .utils import (
 from .models import User, OneTimePassword
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.views import APIView
 from django.core.cache import cache
 import requests
 from django.conf import settings
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 @api_view(["GET"])
@@ -261,7 +264,7 @@ def change_password(request):
 
     if not user.check_password(old_password):
         return Response(
-            {'error': 'Old password is incorrect'},
+            {'old_password': ['Mot de passe incorrect']},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -327,19 +330,7 @@ def get_profile(request):
         },
         status=status.HTTP_200_OK
     )
-# backend/api/views.py
-# AJOUTEZ CES IMPORTS EN HAUT DU FICHIER
 
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.response import Response
-from django.contrib.auth import get_user_model
-from django.db.models import Count
-from django.utils import timezone
-import requests
-from django.conf import settings
-
-User = get_user_model()
 
 # ============================================
 # ADMIN STATS - VRAIES DONNÉES
@@ -348,9 +339,7 @@ User = get_user_model()
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def admin_stats(request):
-    """
-    Retourne les vraies statistiques admin
-    """
+    """Retourne les vraies statistiques admin"""
     try:
         # Compter les utilisateurs
         total_users = User.objects.count()
@@ -359,7 +348,6 @@ def admin_stats(request):
         recent_users = User.objects.order_by('-date_joined')[:10]
         
         # Compter les avis (si vous avez un modèle Review)
-        # Si vous n'avez pas de modèle Review, mettez 0
         try:
             from .models import Review
             total_reviews = Review.objects.count()
@@ -404,16 +392,21 @@ def admin_stats(request):
 
 
 # ============================================
-# FILMS/SÉRIES AVEC PAGINATION AUGMENTÉE
+# PAGINATION AMÉLIORÉE - 100 PAGES (2000 RÉSULTATS)
 # ============================================
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def get_movies_paginated(request):
     """
-    Récupère plus de films (5 pages = 100 films au lieu de 20)
+    Récupère beaucoup de films/séries/anime avec pagination
+    - 20 résultats par page côté frontend
+    - 100 pages disponibles = 2000 résultats totaux
+    - Récupération intelligente des pages TMDB
     """
     category = request.GET.get('category', 'movie')
     language = request.GET.get('language', 'fr-FR')
+    page = int(request.GET.get('page', 1))
     
     # Mapper les langues
     lang_map = {
@@ -429,82 +422,90 @@ def get_movies_paginated(request):
     # Déterminer l'endpoint TMDB
     if category.lower() == 'anime':
         tmdb_category = 'tv'
-        extra_params = {'with_genres': '16'}  # Animation
-    elif category.lower() == 'series':
+        extra_params = {'with_genres': '16', 'with_original_language': 'ja'}
+    elif category.lower() in ['series', 'tv']:
         tmdb_category = 'tv'
         extra_params = {}
     else:
         tmdb_category = 'movie'
         extra_params = {}
     
-    # Récupérer 5 pages (100 résultats)
-    all_results = []
+    # Configuration pagination
+    items_per_page = 20
+    tmdb_items_per_page = 20  # TMDB retourne 20 par page
+    
+    # Calculer quelle page TMDB récupérer
+    # Page 1 frontend = page 1 TMDB
+    # Page 2 frontend = page 2 TMDB
+    # etc.
+    tmdb_page = page
+    
+    # Limiter à 100 pages max
+    if page > 100:
+        return Response({
+            'results': [],
+            'page': page,
+            'total_pages': 100,
+            'total_results': 2000,
+            'items_per_page': items_per_page,
+            'message': 'Page maximum atteinte'
+        })
+    
     tmdb_api_key = settings.TMDB_API_KEY
     
-    for page in range(1, 6):  # Pages 1 à 5
+    try:
+        # Récupérer UNE page TMDB (rapide)
         response = requests.get(
             f'https://api.themoviedb.org/3/discover/{tmdb_category}',
             params={
                 'api_key': tmdb_api_key,
                 'language': tmdb_lang,
-                'page': page,
+                'page': tmdb_page,
                 'sort_by': 'popularity.desc',
                 **extra_params
-            }
+            },
+            timeout=5
         )
         
-        if response.status_code == 200:
-            data = response.json()
-            results = data.get('results', [])
-            
-            # Ajouter media_type pour le frontend
-            for item in results:
-                item['media_type'] = tmdb_category
-                # Titre uniforme
-                if 'name' in item and 'title' not in item:
-                    item['title'] = item['name']
-            
-            all_results.extend(results)
-    
-    return Response({
-        'results': all_results,
-        'total_results': len(all_results),
-        'page': 1,
-        'total_pages': 5
-    })
-
-
-# ============================================
-# CHANGEMENT DE MOT DE PASSE - CORRIGÉ
-# ============================================
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def change_password(request):
-    """
-    Change le mot de passe de l'utilisateur connecté
-    """
-    user = request.user
-    old_password = request.data.get('old_password')
-    new_password = request.data.get('new_password')
-    
-    # Vérifications
-    if not old_password or not new_password:
-        return Response({'error': 'Tous les champs sont requis'}, status=400)
-    
-    # Vérifier l'ancien mot de passe
-    if not user.check_password(old_password):
-        return Response({'old_password': ['Mot de passe incorrect']}, status=400)
-    
-    # Vérifier la longueur du nouveau mot de passe
-    if len(new_password) < 8:
-        return Response({'new_password': ['Le mot de passe doit contenir au moins 8 caractères']}, status=400)
-    
-    # Changer le mot de passe
-    user.set_password(new_password)
-    user.save()
-    
-    return Response({'message': 'Mot de passe changé avec succès'}, status=200)
+        if response.status_code != 200:
+            return Response({
+                'error': 'Erreur TMDB',
+                'results': []
+            }, status=500)
+        
+        data = response.json()
+        results = data.get('results', [])
+        
+        # Ajouter media_type et corriger les données
+        for item in results:
+            item['media_type'] = tmdb_category
+            # Titre uniforme
+            if 'name' in item and 'title' not in item:
+                item['title'] = item['name']
+            # S'assurer que l'ID est bien présent
+            item['tmdb_id'] = item.get('id')
+        
+        # Total de pages : TMDB peut avoir jusqu'à 500 pages, mais on limite à 100
+        tmdb_total_pages = min(data.get('total_pages', 100), 100)
+        
+        return Response({
+            'results': results,
+            'page': page,
+            'total_pages': tmdb_total_pages,
+            'total_results': tmdb_total_pages * items_per_page,
+            'items_per_page': items_per_page
+        })
+        
+    except requests.Timeout:
+        return Response({
+            'error': 'Timeout TMDB',
+            'results': []
+        }, status=504)
+    except Exception as e:
+        return Response({
+            'error': str(e),
+            'results': []
+        }, status=500)
 
 
 # ============================================
@@ -514,9 +515,7 @@ def change_password(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdminUser])
 def get_all_users(request):
-    """
-    Liste tous les utilisateurs avec détails
-    """
+    """Liste tous les utilisateurs avec détails"""
     users = User.objects.all().order_by('-date_joined')
     
     return Response({
